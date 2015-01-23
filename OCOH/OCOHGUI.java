@@ -1,5 +1,6 @@
 package OCOH;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -14,6 +15,7 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -55,7 +57,8 @@ public class OCOHGUI extends JPanel {
 	Point dragged;
 	Point pointed;
 	
-	int stepCounter = 0;
+	int stepCounter = 0; 
+	int stepCounter1 = 0;
 	
 	Listener l = new Listener();
 
@@ -93,7 +96,7 @@ public class OCOHGUI extends JPanel {
     
     JLabel underlineAlgoLabel = new JLabel("________________");
 
-	JButton startButton = new JButton("Run.");
+	JCheckBox startButton = new JCheckBox("Run.");
 	
 	JLabel stepLabel = new JLabel("Step by step: ");
 
@@ -125,7 +128,7 @@ public class OCOHGUI extends JPanel {
 	
 	JButton clearButton = new JButton();
 	
-	public PointList customersList = new PointList(Color.RED);
+	public PointList customersList = new PointList();
 	public int velocity;
 	public int highwayLength;
 
@@ -158,6 +161,7 @@ public class OCOHGUI extends JPanel {
 		
 		fixedLengthCheckBox.setSelected(true);
 		showCustomers.setSelected(true);
+		startButton.setSelected(true);
 		
 	}
 
@@ -318,18 +322,8 @@ public class OCOHGUI extends JPanel {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				try{
-					highwayLength = Integer.parseInt(txtLength.getText());
-					velocity = Integer.parseInt(txtVelocity.getText());
-				}
-				catch(NumberFormatException e){
-					JOptionPane.showMessageDialog(null,
-						    "Invalid Input!",
-						    "Inane error",
-						    JOptionPane.ERROR_MESSAGE);
-				}
-				runAlgorithm();
-				repaint();
+				
+				
 			}
 		});
 		
@@ -344,16 +338,29 @@ public class OCOHGUI extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				runAlgorithm();
-				System.out.println(stepCounter);
-				System.out.println(algorithm.L.length);
-				if(stepCounter < algorithm.L.length){
-					algorithm.L[stepCounter].draw(g);
-					algorithm.R[stepCounter].draw(g);
+				if(stepCounter < algorithm.L.length-1){
 					stepCounter ++;
 				}
+				repaint();
+				
+//				algorithm.a++; //erhöht center radius
 				
 			}});
+		
+		prevButton.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if(stepCounter > 0){
+					stepCounter --;
+				}
+				repaint();
+//				algorithm.a--; // erniedrigt center() radius
+			}
+				
+		});
+		
+		
 	}
 
 
@@ -361,16 +368,107 @@ public class OCOHGUI extends JPanel {
 		customersList.clear();
 //		algorithm.clear();
 		defaultButtonSettings();
+		stepCounter = 0;
 		repaint();
 	}
 
-	
-	public void paintComponent(Graphics g) {
+	public void paintComponent(Graphics graph) {
 		
-		super.paintComponent(g);
+		Graphics2D g = (Graphics2D) graph;
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g.setStroke(new BasicStroke(1));
+		super.paintComponent(graph);
 		this.g = g;
 
+
 		drawAllPoints();
+	
+		if (!customersList.isEmpty()){
+			runAlgorithm();
+			if(algorithm.L.length > 0 ){
+//				for(int i = 0; i < customersList.getSize(); i++){
+//					for(int j = 0; j < customersList.getSize(); j++){
+//						algorithm.DL[stepCounter][j].draw(g);
+//						algorithm.UR[stepCounter][j].draw(g);
+					
+//					 draw smallest axis-aligned bounding box
+//					if (!algorithm.DL[stepCounter][j].isEmpty()){
+//					g.setColor(Color.BLUE);
+//					g.drawRect((int)algorithm.XDL[stepCounter][j][0].posX, (int)algorithm.XDL[stepCounter][j][2].posY,
+//							(int)Math.abs(algorithm.XDL[stepCounter][j][0].posX - algorithm.XDL[stepCounter][j][1].posX), 
+//							(int)Math.abs(algorithm.XDL[stepCounter][j][2].posY - algorithm.XDL[stepCounter][j][3].posY));
+//					}
+//					if (!algorithm.UR[stepCounter][j].isEmpty()){
+//					g.setColor(Color.RED);
+//					g.drawRect((int)algorithm.XUR[stepCounter][j][0].posX, (int)algorithm.XUR[stepCounter][j][2].posY,
+//							(int)Math.abs(algorithm.XUR[stepCounter][j][0].posX - algorithm.XUR[stepCounter][j][1].posX), 
+//							(int)Math.abs(algorithm.XUR[stepCounter][j][2].posY - algorithm.XUR[stepCounter][j][3].posY));
+//					}
+//					}
+				
+				algorithm.L[stepCounter].draw(g);
+				algorithm.R[stepCounter].draw(g);
+				
+				// draw smallest axis-aligned bounding box
+				g.setColor(Color.BLUE);
+				g.drawRect((int)algorithm.XL[stepCounter][0].posX, (int)algorithm.XL[stepCounter][2].posY,
+						(int)Math.abs(algorithm.XL[stepCounter][0].posX - algorithm.XL[stepCounter][1].posX), 
+						(int)Math.abs(algorithm.XL[stepCounter][2].posY - algorithm.XL[stepCounter][3].posY));
+				
+				g.setColor(Color.RED);
+				g.drawRect((int)algorithm.XR[stepCounter][0].posX, (int)algorithm.XR[stepCounter][2].posY,
+						(int)Math.abs(algorithm.XR[stepCounter][0].posX - algorithm.XR[stepCounter][1].posX), 
+						(int)Math.abs(algorithm.XR[stepCounter][2].posY - algorithm.XR[stepCounter][3].posY));
+
+				
+				// draw centers
+				if (algorithm.c1[stepCounter].getSize() == 1) {
+					algorithm.c1[stepCounter].draw(g);
+				} else if (algorithm.c1[stepCounter].getSize() == 2){
+					algorithm.c1[stepCounter].draw(g);
+					g.drawLine((int)algorithm.c1[stepCounter].points.get(0).getX(),(int) algorithm.c1[stepCounter].points.get(0).getY(), 
+							(int)algorithm.c1[stepCounter].points.get(1).getX(), (int)algorithm.c1[stepCounter].points.get(1).getY());
+				} else if (algorithm.c1[stepCounter].getSize() == 4){
+					algorithm.c1[stepCounter].draw(g);
+					g.drawRect((int)algorithm.c1[stepCounter].points.get(0).getX(), (int)algorithm.c1[stepCounter].points.get(0).getY(), 
+							Math.abs((int)algorithm.c1[stepCounter].points.get(2).getX()-(int)algorithm.c1[stepCounter].points.get(0).getX()), 
+							Math.abs((int)algorithm.c1[stepCounter].points.get(1).getY())-(int)algorithm.c1[stepCounter].points.get(0).getY());
+				}
+				if (algorithm.c2[stepCounter].getSize() == 1) {
+					algorithm.c2[stepCounter].draw(g);
+				} else if (algorithm.c2[stepCounter].getSize() == 2){
+					algorithm.c2[stepCounter].draw(g);
+					g.drawLine((int)algorithm.c2[stepCounter].points.get(0).getX(),(int) algorithm.c2[stepCounter].points.get(0).getY(), 
+							(int)algorithm.c2[stepCounter].points.get(1).getX(), (int)algorithm.c2[stepCounter].points.get(1).getY());
+				} else if (algorithm.c2[stepCounter].getSize() == 4){
+					algorithm.c2[stepCounter].draw(g);
+					g.drawRect((int)algorithm.c2[stepCounter].points.get(0).getX(), (int)algorithm.c2[stepCounter].points.get(0).getY(), 
+							Math.abs((int)algorithm.c2[stepCounter].points.get(2).getX()-(int)algorithm.c2[stepCounter].points.get(0).getX()), 
+							Math.abs((int)algorithm.c2[stepCounter].points.get(1).getY())-(int)algorithm.c2[stepCounter].points.get(0).getY());
+				}
+					
+					algorithm.facilityPointsLR[stepCounter].draw(g);
+					algorithm.turnpikePointsLR[stepCounter].draw(g);
+//					g.drawOval((int)(algorithm.circ.centre.getX()-algorithm.circ.radius), (int)(algorithm.circ.centre.getY()-algorithm.circ.radius),
+//							(int)(2*algorithm.circ.radius), (int)(2*algorithm.circ.radius));
+//					g.fillOval((int)(algorithm.circ.centre.getX()-2.5), (int)(algorithm.circ.centre.getY()-2.5),
+//							5, 5);
+//					
+//					g.drawLine((int)algorithm.segm1.source().getX(), (int)algorithm.segm1.source().getY(), 
+//							(int)algorithm.segm1.target().getX(), (int)algorithm.segm1.target().getY());
+//					g.setColor(Color.GREEN);
+//					g.drawLine((int)algorithm.segm2.source().getX(), (int)algorithm.segm2.source().getY(), 
+//							(int)algorithm.segm2.target().getX(), (int)algorithm.segm2.target().getY());
+//				
+//				}
+				
+				
+				
+			
+								
+			}
+		}
 		
 	
 	}
@@ -378,16 +476,19 @@ public class OCOHGUI extends JPanel {
 	
 	public void drawAllPoints() {
 
+
 		
-		customersList.draw(g);
-		
-		// Draw a rectangle around the point which is selected
-		if (dragged != null) {
-			dragged.drawHighlight(g);
+		if (showCustomers.isSelected()){
+			customersList.draw(g);
+			// Draw a rectangle around the point which is selected
+			if (dragged != null) {
+				dragged.drawHighlight(g);
+			}
+			if(pointed != null){
+				pointed.drawBoundings(g);
+			}
 		}
-		if(pointed != null){
-			pointed.drawBoundings(g);
-		}
+		repaint();
 	}
 
 
@@ -430,11 +531,11 @@ public class OCOHGUI extends JPanel {
 	
 	public void leftMouseClick(Point p){
 		
-		if(!pointAlreadyExists(p)){
+		if(!pointAlreadyExists(p) && showCustomers.isSelected()){
 			addPoint(p);
 		}else{
 			
-			if(customersList.contains(p)){
+			if(customersList.contains(p) && showCustomers.isSelected()){
 				dragged = customersList.search(p);
 			}
 			 // Highlight the clicked point
@@ -481,9 +582,9 @@ public class OCOHGUI extends JPanel {
 				
 		if(!collisionExists(p)){
 			
-			p.setColor(Color.RED);
 			System.out.println(p.toString());
 			customersList.addPoint(p);
+			runAlgorithm();
 					
 		}
 		repaint();
@@ -505,11 +606,22 @@ public class OCOHGUI extends JPanel {
 		}
 	}
 
-	
 	public void runAlgorithm(){
-//		if(startButton.isSelected()){
+		
+		if(startButton.isSelected()){
+			try{
+				highwayLength = Integer.parseInt(txtLength.getText());
+				velocity = Integer.parseInt(txtVelocity.getText());
+				repaint();
+			}
+			catch(NumberFormatException e){
+				JOptionPane.showMessageDialog(null,
+					    "Invalid Input!",
+					    "Error",
+					    JOptionPane.ERROR_MESSAGE);
+			}
 			algorithm.runAlgorithm(customersList, highwayLength, velocity);
 		
-//		}
+		}
 	}
 }

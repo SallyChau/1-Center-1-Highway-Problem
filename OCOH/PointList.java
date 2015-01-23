@@ -28,7 +28,7 @@ public class PointList {
 	}
 	
 	public PointList(){
-		this(Color.RED);
+		this(Color.BLACK);
 	}
 
 	public void setList(List<Point> points){
@@ -87,6 +87,7 @@ public class PointList {
 	
 	public void draw(Graphics g){
 			
+		setPointsColor(pointColor);
 		for(Point p: points){
 			p.draw(g);
 			
@@ -176,8 +177,8 @@ public class PointList {
 		double max = Double.NEGATIVE_INFINITY;
 		for (Point p : points){
 			for (Point q : points){
-				if (p.distanceTo(q, Double.POSITIVE_INFINITY) > max){
-					max = p.distanceTo(q, Double.POSITIVE_INFINITY);
+				if (p.inftyDistanceTo(q) > max){
+					max = p.inftyDistanceTo(q);
 				}
 			}
 		}

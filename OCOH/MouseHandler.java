@@ -57,10 +57,10 @@ public class MouseHandler extends MouseAdapter{
 		
 		//System.err.println("MOUSE DRAGGED:"+e.getX()+" "+e.getY());
 
-//		if(mouseInScreen(e)){
+		if(mouseInScreen(e)){
 			Point p = new Point(e.getX(), e.getY());
 			panel.dragged(p);
-//		}
+		}
 
 	}
 	
