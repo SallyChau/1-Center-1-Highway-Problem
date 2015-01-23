@@ -388,6 +388,7 @@ public class OCOHGUI extends JPanel {
 			runAlgorithm();
 			if(algorithm.L.length > 0 ){
 				
+				
 //				for(int i = 0; i < customersList.getSize(); i++){
 //					for(int j = 0; j < customersList.getSize(); j++){
 //						algorithm.DL[stepCounter][j].draw(g);
