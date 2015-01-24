@@ -18,9 +18,10 @@ import anja.geom.Rectangle2;
 import anja.geom.Segment2;
 import anja.util.SimpleList;
 
-
 public class OCOHAlgorithm {
-		
+	
+		Circle2 circ;
+		PointList interPoints;
 		Point currentFacility = new Point(); // turnpike endpoint CHECK WHETHER CURRENT POINTS ARE CORRECT
 		Point currentTurnpikeStart = new Point();
 		double currentRadius = 0;
@@ -46,7 +47,6 @@ public class OCOHAlgorithm {
 		Point[][][] XUR;
 		Point[][][] XDL;
 		
-
 		PointList[] c1;
 		PointList[] c2;
 		double prevY = 0;
@@ -108,30 +108,49 @@ public class OCOHAlgorithm {
 			// solve basic problem for all pairs (L,R)
 			for (int i = 0; i < L.length; i++){
 
-				eps1 = Math.max(0, L[i].delta() + highWayLength/velocity - R[i].delta());
-				eps2 = Math.max(0, R[i].delta() - L[i].delta() - highWayLength/velocity);
-				
-				x = BPradius(L[i], R[i], 0, maxDist);
-				c1[i] = center(L[i], L[i].delta() + eps2 + x);
-				c2[i] = center(R[i], R[i].delta() + eps1 + x);
-			
-				solveBasicProblem(L[i], R[i], highWayLength, velocity);
+				eps1 = Math.max(0, L[i].delta() + highwayLength/velocity - R[i].delta());
+				eps2 = Math.max(0, R[i].delta() - L[i].delta() - highwayLength/velocity);
+				solveBasicProblem(L[i], R[i]);
 				facilityPointsLR[i] = currentFacility;
 				turnpikePointsLR[i] = currentTurnpikeStart;
 				partitionRadiusLR[i] = currentRadius;
-				System.out.println("Facility: " + facilityPointsLR[i].toString() + "T: " + turnpikePointsLR[i]);
-				System.out.println("Distance: " + Math.sqrt(facilityPointsLR[i].distanceSquaredTo(turnpikePointsLR[i])));
-				System.out.println("Radius: " + partitionRadiusLR[i]);
+				c1[i] = center(L[i], L[i].delta() + eps2 + x);
+				c2[i] = center(R[i], R[i].delta() + eps1 + x);
+			
+				
+//				System.out.println("Facility: " + facilityPointsLR[i].toString() + " T: " + turnpikePointsLR[i]);
+//				System.out.println("Distance: " + Math.sqrt(facilityPointsLR[i].distanceSquaredTo(turnpikePointsLR[i])));
+//				System.out.println("Radius: " + partitionRadiusLR[i]);
 				
 			}	
 			// case c)
 			// Find extreme points for all sets UR_i,j
 			
+			System.out.println(currentFacility.toString() + " T: " + currentTurnpikeStart);
+			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
+			
 		}
 	}
-	
-	
-	public double BPradius(PointList list1, PointList list2, double m, double M){
+
+	/**
+	 * Computes the smallest radius needed to place a turnpike 
+	 * of length highwayLength as an input for the method 
+	 * @see{OCOH.OCOHAlgorithm.center(PointList T, double radius)}.
+	 * This method uses binary search to find the smallest radius 
+	 * in time O(log n).
+	 * 
+	 * @param list1
+	 * 			List of Points 
+	 * @param list2
+	 * 			List of Points
+	 * @param m
+	 * 			lower bound
+	 * @param M
+	 * 			upper bound
+	 * @return
+	 * 			the minimum radius needed to place a turnpike
+	 */
+	public double getBPradius(PointList list1, PointList list2, double m, double M){
 		
 		double y = (m+M)/2;
 		
@@ -140,7 +159,7 @@ public class OCOHAlgorithm {
 		
 		PointList centers1 = center(list1, list1.delta() + e2 + y); // Center(H, d(H)+e2+x)
 		PointList centers2 = center(list2, list2.delta() + e1 + y); // Center(W, d(W)+e1+x)
-			
+		
 		// find maximum distance between centers1 and centers2
 		double maxDist = maxDist(centers1, centers2);
 		
@@ -154,280 +173,331 @@ public class OCOHAlgorithm {
 			prevY = y;
 			if ((int)Math.abs(M-m) == 0){
 				return y;
-			} else return BPradius(list1, list2, m, y);
+			} else return getBPradius(list1, list2, m, y);
 		} else {
-			return BPradius(list1, list2, y, M);
+			return getBPradius(list1, list2, y, M);
 		}
 		
 	}
 	
-	public void solveBasicProblem(PointList list1, PointList list2, double highWayLength, double velocity){
+	private void setCurrentTurnpike(Point t){
+		currentTurnpikeStart = t;
+	}
+	
+	private void setCurrentFacility(Point f){
+		currentFacility = f;
+	}
+	
+	public void solvePointToPointBP(PointList centers1, PointList centers2){
+		Point t = new Point(centers1.points.get(0).posX, centers1.points.get(0).posY);
+		Point f = new Point(centers2.points.get(0).posX, centers2.points.get(0).posY);
+		setCurrentTurnpike(t);
+		setCurrentFacility(f);
+	}
+	/**
+	 * @param centers1 
+	 * 			input point
+	 * @param centers2
+	 * 			input line segment
+	 */
+	public void solvePointToLineBP(PointList centers1, PointList centers2){
+		Point2 p1 = new Point2(centers1.points.get(0).posX, centers1.points.get(0).posY);
+		Point2 p21 = new Point2(centers2.points.get(0).posX, centers2.points.get(0).posY);
+		Point2 p22 = new Point2(centers2.points.get(1).posX, centers2.points.get(1).posY);
+		Segment2 s = new Segment2(p21, p22);
+		Circle2 c = new Circle2(p1, (float)highwayLength);
+		Intersection i = c.intersection(s);
+		Point2 iPoint = (Point2) i.getList().getValueAt(0);
+		Point t = new Point(p1.getX(), p1.getY());
+		Point f = new Point(iPoint.getX(), iPoint.getY());
+		circ = c;
+		setCurrentFacility(f);
+		setCurrentTurnpike(t);
+	}
+	
+	public void solveLineToLineBP(PointList centers1, PointList centers2){
 		
-		double e1 = Math.max(0, list1.delta() + highWayLength/velocity - list2.delta());
-		double e2 = Math.max(0, list2.delta() - list1.delta() - highWayLength/velocity);
+		Point t = new Point();
+		Point f = new Point();
 		
-		x = BPradius(list1, list2, 0, maxDist);
+		Point2 p11 = new Point2(centers1.points.get(0).posX, centers1.points.get(0).posY);
+		Point2 p12 = new Point2(centers1.points.get(1).posX, centers1.points.get(1).posY);
+		Point2 p21 = new Point2(centers2.points.get(0).posX, centers2.points.get(0).posY);
+		Point2 p22 = new Point2(centers2.points.get(1).posX, centers2.points.get(1).posY);
+		Segment2 s1 = new Segment2(p11,p12);
+		Segment2 s2 = new Segment2(p21,p22);
+		Circle2 c1 = new Circle2(p11, (float)highwayLength);
+		Circle2 c2 = new Circle2(p12, (float)highwayLength);
+		Circle2 c3 = new Circle2(p21, (float)highwayLength);
+		Circle2 c4 = new Circle2(p22, (float)highwayLength);
+		List<Circle2> circs = new ArrayList<Circle2>();
+		circs.add(c1);
+		circs.add(c2);
+		circs.add(c3);
+		circs.add(c4);
+		
+		PointList interPoints = new PointList(Color.CYAN);
+		List<Intersection> inters = new ArrayList<Intersection>();
+		inters.add(c1.intersection(s2));
+		inters.add(c2.intersection(s2));
+		inters.add(c3.intersection(s1));
+		inters.add(c4.intersection(s1));
+		for (int i = 0; i < inters.size(); i++){
+			if (inters.get(i).getList() != null){
+				if (inters.get(i).getList().length() > 0){
+					for (int j = 0; j < inters.get(i).getList().length(); j++){
+						Point2 q = (Point2)(inters.get(i).getList().getValueAt(j));
+						Point p = new Point(q.getX(), q.getY());
+						interPoints.addPoint(p);
+					}
+					t = new Point(circs.get(i).centre.getX(), circs.get(i).centre.getY());
+					circ = circs.get(i);
+					setCurrentTurnpike(t);
+					for(int j = 0; j < interPoints.getSize(); j++){
+						if (!interPoints.points.get(j).equals(t)) {
+							f = interPoints.points.get(j);
+							setCurrentFacility(f);
+							break; // break for
+						}
+					} break; // break for
+				}
+			}
+		}
+		
+		
+		
+	}
+	
+	//TODO method that takes an Intersection object and returns a pointlist instead
+	//TODO solvePointToRectBP()
+	
+	/**
+	 * 
+	 * @param centers1
+	 * 			input list of 4 points which define edges of rectangle
+	 * @param centers2
+	 * 			input list of 2 points which define line segment
+	 */
+	public void solveLineToRectBP(PointList centers1, PointList centers2){
+		
+		Point t = new Point();
+		Point f = new Point();
+		
+		PointList interPoints = new PointList(Color.CYAN);
+		
+		Rectangle2 rect = new Rectangle2((float)centers1.points.get(0).posX, (float)centers1.points.get(0).posY,
+				(float)(Math.abs(centers1.points.get(2).posX-centers1.points.get(0).posX)), 
+				(float)(Math.abs(centers1.points.get(1).posY-centers1.points.get(0).posY)));
+		// edges of rectangle
+		Point2 p11 = new Point2(rect.getX(), rect.getY()); // upper left corner
+		Point2 p12 = new Point2(rect.getX() + rect.width, rect.getY()); // upper right
+		Point2 p13 = new Point2(rect.getX() + rect.width, rect.getY() + rect.height);//lower right
+		Point2 p14 = new Point2(rect.getX(), rect.getY() + rect.height); // lower left
+		// Circles around rectangle
+		Circle2 c1 = new Circle2(p11, (float)highwayLength);
+		Circle2 c2 = new Circle2(p12, (float)highwayLength);
+		Circle2 c3 = new Circle2(p13, (float)highwayLength);
+		Circle2 c4 = new Circle2(p14, (float)highwayLength);
+		
+		// end points of line
+		Point2 p21 = new Point2(centers2.points.get(0).posX, centers2.points.get(0).posY);
+		Point2 p22 = new Point2(centers2.points.get(1).posX, centers2.points.get(1).posY);
+		Segment2 seg = new Segment2(p21, p22);
+		// Circles around line
+		Circle2 c5 = new Circle2(p21, (float)highwayLength);
+		Circle2 c6 = new Circle2(p22, (float)highwayLength);
+		
+		List<Circle2> circs = new ArrayList<Circle2>();
+		circs.add(c1);
+		circs.add(c2);
+		circs.add(c3);
+		circs.add(c4);
+		circs.add(c5);
+		circs.add(c6);
+		
+		// check intersection from rect circles with line
+		List<Intersection> inters = new ArrayList<Intersection>();
+		inters.add(c1.intersection(seg));
+		inters.add(c2.intersection(seg));
+		inters.add(c3.intersection(seg));
+		inters.add(c4.intersection(seg));
+		for (int i = 0; i < inters.size(); i++){
+			if (inters.get(i).getList() != null){
+				if (inters.get(i).getList().length() > 0){
+					for (int j = 0; j < inters.get(i).getList().length(); j++){
+						Point2 q = (Point2)(inters.get(i).getList().getValueAt(j));
+						Point p = new Point(q.getX(), q.getY());
+						interPoints.addPoint(p);
+					}
+					t = new Point(circs.get(i).centre.getX(), circs.get(i).centre.getY());
+					circ = circs.get(i);
+					setCurrentTurnpike(t);
+					for(int j = 0; j < interPoints.getSize(); j++){
+						if (!interPoints.points.get(j).equals(t)) {
+							f = interPoints.points.get(j);
+							setCurrentFacility(f);
+							break; // break for
+						}
+					} break; // break for
+				}
+				
+			}
+		}
+		
+		
+		// check intersection from line circles with rect
+		if (interPoints.points.size() == 0){
+			if(circleRectInt(c5, rect).points.size() > 0){
+				interPoints = circleRectInt(c5, rect);
+				t = new Point(c5.centre.getX(), c5.centre.getY()); // circle center
+				setCurrentTurnpike(t);
+				for(int i = 0; i < interPoints.getSize(); i++){
+					if (!interPoints.points.get(i).equals(t)){
+						f = interPoints.points.get(i);
+						setCurrentFacility(f);
+						break; // break for
+					}
+				}
+			} else if(circleRectInt(c6, rect).points.size() > 0){
+				t = new Point(c6.centre.getX(), c6.centre.getY()); // circle center
+				setCurrentTurnpike(t);
+				for(int i = 0; i < interPoints.getSize(); i++){
+					if (!interPoints.points.get(i).equals(t)){
+						f = interPoints.points.get(i);
+						setCurrentFacility(f);
+						break; // break for
+					}
+				}
+			}
+		}
+	}
+	
+	public void solveRectToRectBP(PointList centers1, PointList centers2){
+		
+		Point t = new Point();
+		Point f = new Point();
+		
+		List<PointList> inters = new ArrayList<PointList>();
+		PointList interPoints = new PointList(Color.CYAN);
+		
+		Rectangle2 rect1 = new Rectangle2((float)centers1.points.get(0).posX, (float)centers1.points.get(0).posY,
+			(float)(centers1.points.get(2).posX-centers1.points.get(0).posX), 
+			(float)(centers1.points.get(1).posY-centers1.points.get(0).posY));
+
+		Rectangle2 rect2 = new Rectangle2((float)centers2.points.get(0).posX, (float)centers2.points.get(0).posY,
+			(float)(centers2.points.get(2).posX-centers2.points.get(0).posX), 
+			(float)(centers2.points.get(1).posY-centers2.points.get(0).posY));
+		
+		// Rect1
+		Point2 p11 = new Point2(rect1.getX(), rect1.getY()); // upper left corner
+		Point2 p12 = new Point2(rect1.getX() + rect1.width, rect1.getY()); // upper right
+		Point2 p13 = new Point2(rect1.getX() + rect1.width, rect1.getY() + rect1.height);//lower right
+		Point2 p14 = new Point2(rect1.getX(), rect1.getY() + rect1.height); // lower left
+		
+		Circle2 c1 = new Circle2(p11, (float)highwayLength);
+		Circle2 c2 = new Circle2(p12, (float)highwayLength);
+		Circle2 c3 = new Circle2(p13, (float)highwayLength);
+		Circle2 c4 = new Circle2(p14, (float)highwayLength);
+		
+		//Rect2
+		Point2 p21 = new Point2(rect2.getX(), rect2.getY()); // upper left corner
+		Point2 p22 = new Point2(rect2.getX() + rect2.width, rect2.getY()); // upper right
+		Point2 p23 = new Point2(rect2.getX() + rect2.width, rect2.getY() + rect2.height);//lower right
+		Point2 p24 = new Point2(rect2.getX(), rect2.getY() + rect2.height); // lower left
+		
+		Circle2 c5 = new Circle2(p21, (float)highwayLength);
+		Circle2 c6 = new Circle2(p22, (float)highwayLength);
+		Circle2 c7 = new Circle2(p23, (float)highwayLength);
+		Circle2 c8 = new Circle2(p24, (float)highwayLength);
+		
+		List<Circle2> circs = new ArrayList<Circle2>();
+		circs.add(c1);
+		circs.add(c2);
+		circs.add(c3);
+		circs.add(c4);
+		circs.add(c5);
+		circs.add(c6);
+		circs.add(c7);
+		circs.add(c8);
+		
+		// calculate all intersection points between all circles and rects
+		inters.add(circleRectInt(c1, rect2));
+		inters.add(circleRectInt(c2, rect2));
+		inters.add(circleRectInt(c3, rect2));
+		inters.add(circleRectInt(c4, rect2));
+		inters.add(circleRectInt(c5, rect1));
+		inters.add(circleRectInt(c6, rect1));
+		inters.add(circleRectInt(c7, rect1));
+		inters.add(circleRectInt(c8, rect1));
+		
+		for (int i = 0; i < inters.size(); i++){
+			if (inters.get(i).getSize() > 0){
+				for (int j = 0; j < inters.get(i).getSize(); j++){
+					Point p = inters.get(i).points.get(j);
+					interPoints.addPoint(p);
+				}
+				this.interPoints = interPoints;
+				t = new Point(circs.get(i).centre.getX(), circs.get(i).centre.getY());
+				circ = circs.get(i);
+				setCurrentTurnpike(t);
+				for(int j = 0; j < interPoints.getSize(); j++){
+					if (!interPoints.points.get(j).equals(t)) {
+						f = interPoints.points.get(j);
+						setCurrentFacility(f);
+						break; // break for
+					}
+				} break; // break for
+			}
+			
+		}
+		
+	}
+		
+	//TODO set currentradius
+	
+	public void solveBasicProblem(PointList list1, PointList list2){
+		
+		double e1 = Math.max(0, list1.delta() + highwayLength/velocity - list2.delta());
+		double e2 = Math.max(0, list2.delta() - list1.delta() - highwayLength/velocity);
+		
+		x = getBPradius(list1, list2, 0, maxDist);
 		
 		PointList centers1 = center(list1, list1.delta() + e2 + x); // Center(H, d(H)+e2+x)
 		PointList centers2 = center(list2, list2.delta() + e1 + x); // Center(W, d(W)+e1+x)
-	
-		if (centers1.getSize() == 2 && centers2.getSize() == 2){
-			
-			LineSegment line1 = new LineSegment(centers1.points.get(0), centers1.points.get(1));
-			LineSegment line2 = new LineSegment(centers2.points.get(0), centers2.points.get(1));
-			Point2 p11 = new Point2(centers1.points.get(0).posX, centers1.points.get(0).posY);
-			Point2 p12 = new Point2(centers1.points.get(1).posX, centers1.points.get(1).posY);
-			Point2 p21 = new Point2(centers2.points.get(0).posX, centers2.points.get(0).posY);
-			Point2 p22 = new Point2(centers2.points.get(1).posX, centers2.points.get(1).posY);
-			Segment2 s1 = new Segment2(p11,p12);
-			Segment2 s2 = new Segment2(p21,p22);
-			Circle2 c1 = new Circle2(p11, (float)highWayLength);
-			Circle2 c2 = new Circle2(p12, (float)highWayLength);
-			Circle2 c3 = new Circle2(p21, (float)highWayLength);
-			Circle2 c4 = new Circle2(p22, (float)highWayLength);
-			Intersection i;
-			Intersection i1 = c1.intersection(s2);
-			Intersection i2 = c2.intersection(s2);
-			Intersection i3 = c3.intersection(s1);
-			Intersection i4 = c4.intersection(s1);
-			if (i1.getList().length() < 1){
-				if (i2.getList().length() < 1){
-					if (i3.getList().length() < 1){
-						i = i4;
-						currentTurnpikeStart = new Point(p22.getX(), p22.getY());
-//									System.out.println("C4");
-					} else {
-						i = i3;
-						currentTurnpikeStart = new Point(p21.getX(), p21.getY());
-//									System.out.println("C3");
-					}
-				} else {
-					i = i2;
-					currentTurnpikeStart = new Point(p12.getX(), p12.getY());
-//								System.out.println("C2");
-				}
-			} else {
-				i = i1; 
-				currentTurnpikeStart = new Point(p11.getX(), p11.getY());
-//							System.out.println("C1");
-			}
-			if (i.getList() != null){
-				SimpleList list = i.getList();
-//							System.out.println("Anzahl Schnitte: " + list.length());
-//							System.out.println(list.toString());
-				if (list.getValueAt(0) instanceof Point2) {
-					Point2 p = (Point2) list.getValueAt(0);
-					currentFacility = new Point(p.getX(), p.getY());
-				}
-			}
-			currentRadius = Math.max(list2.delta() + e1 + x, list1.delta() + e2 + x);
-			System.out.println("2 Lines: " + currentFacility.distanceSquaredTo(currentTurnpikeStart));
-		} else if (centers1.getSize() == 4 && centers2.getSize() == 2){
-			Rectangle2 rect1 = new Rectangle2((float)centers1.points.get(0).posX, (float)centers1.points.get(0).posY,
-					(float)(centers1.points.get(2).posX-centers1.points.get(0).posX), 
-					(float)(centers1.points.get(1).posY-centers1.points.get(0).posY));
-			LineSegment line2 = new LineSegment(centers2.points.get(0), centers2.points.get(1));
-			
-			// Circles around rect1
-			Point2 p11 = new Point2(rect1.getX(), rect1.getY()); // upper left corner
-			Point2 p12 = new Point2(rect1.getX() + rect1.width, rect1.getY()); // upper right
-			Point2 p13 = new Point2(rect1.getX() + rect1.width, rect1.getY() + rect1.height);//lower right
-			Point2 p14 = new Point2(rect1.getX(), rect1.getY() + rect1.height); // lower left
-			Circle2 c1 = new Circle2(p11, (float)highWayLength);
-			Circle2 c2 = new Circle2(p12, (float)highWayLength);
-			Circle2 c3 = new Circle2(p13, (float)highWayLength);
-			Circle2 c4 = new Circle2(p14, (float)highWayLength);
-			
-			// Circles around line2
-			Point2 p21 = new Point2(line2.start.posX, line2.start.posY);
-			Point2 p22 = new Point2(line2.end.posX, line2.end.posY);
-			Circle2 c5 = new Circle2(p21, (float)highWayLength);
-			Circle2 c6 = new Circle2(p22, (float)highWayLength);
-			
-			// check intersection from rect1 circles with line2
-			Segment2 s1 = new Segment2(p21, p22);
-			Intersection i = null;
-			Intersection i1 = c1.intersection(s1);
-			Intersection i2 = c2.intersection(s1);
-			Intersection i3 = c3.intersection(s1);
-			Intersection i4 = c4.intersection(s1);
-			if (i1.getList().length() < 1){
-				if (i2.getList().length() < 1){
-					if (i3.getList().length() < 1){
-						if (i4.getList().length() < 1){
-							Point p1 = CircleRectInt(c5, rect1);
-							if (p1 != null){
-								currentTurnpikeStart = new Point(p21.getX(), p21.getY());
-								currentFacility = p1;
-							} else {
-								Point p2 = CircleRectInt(c6, rect1);
-								currentTurnpikeStart = new Point(p22.getX(), p22.getY());
-								currentFacility = p2;
-							}
-						} else {
-							i = i4;
-						currentTurnpikeStart = new Point(p14.getX(), p14.getY());
-//									System.out.println("C4");
-						}
-					} else {
-						i = i3;
-						currentTurnpikeStart = new Point(p13.getX(), p13.getY());
-//									System.out.println("C3");
-					}
-				} else {
-					i = i2;
-					currentTurnpikeStart = new Point(p12.getX(), p12.getY());
-//								System.out.println("C2");
-				}
-			} else {
-				i = i1; 
-				currentTurnpikeStart = new Point(p11.getX(), p11.getY());
-//							System.out.println("C1");
-			}
-			if(i != null){
-				if (i.getList() != null){
-					SimpleList list = i.getList();
-//								System.out.println("Anzahl Schnitte: " + list.length());
-					System.out.println(list.toString());
-					if (list.getValueAt(0) instanceof Point2) {
-						Point2 p = (Point2) list.getValueAt(0);
-						currentFacility = new Point(p.getX(), p.getY());
-					}
-				}
-			}
-				currentRadius = Math.max(list2.delta() + e1 + x, list1.delta() + e2 + x);
-				System.out.println("1 Rect, 1 Line, a: " + currentFacility.distanceSquaredTo(currentTurnpikeStart));
-			} else if (centers1.getSize() == 2 && centers2.getSize() == 4){
-			Rectangle2 rect1 = new Rectangle2((float)centers2.points.get(0).posX, (float)centers2.points.get(0).posY,
-					(float)(centers2.points.get(2).posX-centers2.points.get(0).posX), 
-					(float)(centers2.points.get(1).posY-centers2.points.get(0).posY));
-			LineSegment line2 = new LineSegment(centers1.points.get(0), centers1.points.get(1));
-			// Circles around rect1
-			Point2 p11 = new Point2(rect1.getX(), rect1.getY()); // upper left corner
-			Point2 p12 = new Point2(rect1.getX() + rect1.width, rect1.getY()); // upper right
-			Point2 p13 = new Point2(rect1.getX() + rect1.width, rect1.getY() + rect1.height);//lower right
-			Point2 p14 = new Point2(rect1.getX(), rect1.getY() + rect1.height); // lower left
-			Circle2 c1 = new Circle2(p11, (float)highWayLength);
-			Circle2 c2 = new Circle2(p12, (float)highWayLength);
-			Circle2 c3 = new Circle2(p13, (float)highWayLength);
-			Circle2 c4 = new Circle2(p14, (float)highWayLength);
-			
-			// Circles around line2
-			Point2 p21 = new Point2(line2.start.posX, line2.start.posY);
-			Point2 p22 = new Point2(line2.end.posX, line2.end.posY);
-			Circle2 c5 = new Circle2(p21, (float)highWayLength);
-			Circle2 c6 = new Circle2(p22, (float)highWayLength);
-			
-			// check intersection from rect1 circles with line2
-			Segment2 s1 = new Segment2(p21, p22);
-			Intersection i = null;
-			Intersection i1 = c1.intersection(s1);
-			Intersection i2 = c2.intersection(s1);
-			Intersection i3 = c3.intersection(s1);
-			Intersection i4 = c4.intersection(s1);
-			if (i1.getList().length() < 1){
-				if (i2.getList().length() < 1){
-					if (i3.getList().length() < 1){
-						if (i4.getList().length() < 1){
-							Point p1 = CircleRectInt(c5, rect1);
-							if (p1 != null){
-								currentTurnpikeStart = new Point(p21.getX(), p21.getY());
-								currentFacility = p1;
-							} else {
-								Point p2 = CircleRectInt(c6, rect1);
-								currentTurnpikeStart = new Point(p22.getX(), p22.getY());
-								currentFacility = p2;
-							}
-						} else {
-							i = i4;
-						currentTurnpikeStart = new Point(p14.getX(), p14.getY());
-//									System.out.println("C4");
-						}
-					} else {
-						i = i3;
-						currentTurnpikeStart = new Point(p13.getX(), p13.getY());
-//									System.out.println("C3");
-					}
-				} else {
-					i = i2;
-					currentTurnpikeStart = new Point(p12.getX(), p12.getY());
-//								System.out.println("C2");
-				}
-			} else {
-				i = i1; 
-				currentTurnpikeStart = new Point(p11.getX(), p11.getY());
-//							System.out.println("C1");
-			}
-			if(i != null){
-				if (i.getList() != null){
-					SimpleList list = i.getList();
-					if (list.getValueAt(0) instanceof Point2) {
-						Point2 p = (Point2) list.getValueAt(0);
-						currentFacility = new Point(p.getX(), p.getY());
-					}
-				}
-			}
-			currentRadius = Math.max(list2.delta() + e1 + x, list1.delta() + e2 + x);
-			System.out.println("1 Rect, 1 Line, b: " + currentFacility.distanceSquaredTo(currentTurnpikeStart));
-		} else if (centers1.getSize() == 4 && centers2.getSize() == 4){
-			Rectangle2 rect1 = new Rectangle2((float)centers1.points.get(0).posX, (float)centers1.points.get(0).posY,
-					(float)(centers1.points.get(2).posX-centers1.points.get(0).posX), 
-					(float)(centers1.points.get(1).posY-centers1.points.get(0).posY));
 		
-			Rectangle2 rect2 = new Rectangle2((float)centers2.points.get(0).posX, (float)centers2.points.get(0).posY,
-					(float)(centers2.points.get(2).posX-centers2.points.get(0).posX), 
-					(float)(centers2.points.get(1).posY-centers2.points.get(0).posY));
-			// Rect1
-			Point2 p11 = new Point2(rect1.getX(), rect1.getY()); // upper left corner
-			Point2 p12 = new Point2(rect1.getX() + rect1.width, rect1.getY()); // upper right
-			Point2 p13 = new Point2(rect1.getX() + rect1.width, rect1.getY() + rect1.height);//lower right
-			Point2 p14 = new Point2(rect1.getX(), rect1.getY() + rect1.height); // lower left
-			
-			Circle2 c1 = new Circle2(p11, (float)highWayLength);
-			Circle2 c2 = new Circle2(p12, (float)highWayLength);
-			Circle2 c3 = new Circle2(p13, (float)highWayLength);
-			Circle2 c4 = new Circle2(p14, (float)highWayLength);
-			
-			//Rect2
-			Point2 p21 = new Point2(rect2.getX(), rect2.getY()); // upper left corner
-			Point2 p22 = new Point2(rect2.getX() + rect2.width, rect2.getY()); // upper right
-			Point2 p23 = new Point2(rect2.getX() + rect2.width, rect2.getY() + rect2.height);//lower right
-			Point2 p24 = new Point2(rect2.getX(), rect2.getY() + rect2.height); // lower left
-			
-			Circle2 c5 = new Circle2(p21, (float)highWayLength);
-			Circle2 c6 = new Circle2(p22, (float)highWayLength);
-			Circle2 c7 = new Circle2(p23, (float)highWayLength);
-			Circle2 c8 = new Circle2(p24, (float)highWayLength);
-			
-			if (CircleRectInt(c1, rect2) != null){
-				currentTurnpikeStart = new Point(p11.getX(), p11.getY());
-				currentFacility = CircleRectInt(c1, rect2);
-			} else if (CircleRectInt(c2, rect2) != null){
-				currentTurnpikeStart = new Point(p12.getX(), p12.getY());
-				currentFacility = CircleRectInt(c2, rect2);
-			} else if (CircleRectInt(c3, rect2) != null){
-				currentTurnpikeStart = new Point(p13.getX(), p13.getY());
-				currentFacility = CircleRectInt(c3, rect2);
-			} else if (CircleRectInt(c4, rect2) != null){
-				currentTurnpikeStart = new Point(p14.getX(), p14.getY());
-				currentFacility = CircleRectInt(c4, rect2);
-			} else if (CircleRectInt(c5, rect1) != null){
-				currentTurnpikeStart = new Point(p21.getX(), p21.getY());
-				currentFacility = CircleRectInt(c5, rect2);
-			} else if (CircleRectInt(c6, rect1) != null){
-				currentTurnpikeStart = new Point(p22.getX(), p22.getY());
-				currentFacility = CircleRectInt(c6, rect2);
-			} else if (CircleRectInt(c7, rect1) != null){
-				currentTurnpikeStart = new Point(p23.getX(), p23.getY());
-				currentFacility = CircleRectInt(c7, rect2);
-			} else if (CircleRectInt(c8, rect1) != null){
-				currentTurnpikeStart = new Point(p24.getX(), p24.getY());
-				currentFacility = CircleRectInt(c8, rect2);
-			}
-			currentRadius = Math.max(list2.delta() + e1 + x, list1.delta() + e2 + x);
-			System.out.println("2Rect: " + currentFacility.distanceSquaredTo(currentTurnpikeStart));
+		if (centers1.getSize() == 1 && centers2.getSize() == 1){
+			solvePointToPointBP(centers1, centers2);
+		} else if (centers1.getSize() == 1 && centers2.getSize() == 2){
+			solvePointToLineBP(centers1, centers2);
+		} else if (centers1.getSize() == 2 && centers2.getSize() == 1){
+			solvePointToLineBP(centers2, centers1);
+		} else if (centers1.getSize() == 2 && centers2.getSize() == 2){
+			solveLineToLineBP(centers1, centers2);
+		} else if (centers1.getSize() == 4 && centers2.getSize() == 2){
+			solveLineToRectBP(centers1, centers2);
+		} else if (centers1.getSize() == 2 && centers2.getSize() == 4){
+			solveLineToRectBP(centers2, centers1);
+		} else if (centers1.getSize() == 4 && centers2.getSize() == 4){
+			solveRectToRectBP(centers1, centers2);
 		}
 	}
+	
+	public void solveBP(PointList list1, PointList list2){
+		double e1 = Math.max(0, list1.delta() + highwayLength/velocity - list2.delta());
+		double e2 = Math.max(0, list2.delta() - list1.delta() - highwayLength/velocity);
+		
+		x = getBPradius(list1, list2, 0, maxDist);
+		
+		PointList centers1 = center(list1, list1.delta() + e2 + x); // Center(H, d(H)+e2+x)
+		PointList centers2 = center(list2, list2.delta() + e1 + x); // Center(W, d(W)+e1+x)
+		Point[] minDistPoints = minDistPoints(centers1, centers2);
+		if (!centers1.contains(minDistPoints[0])) {
+			minDistPoints[0] = minDistPoints(centers1, centers2)[1];
+			minDistPoints[1] = minDistPoints(centers1, centers2)[0];
+		}
+		Point[] maxDistPoints = maxDistPoints(centers1, centers2);
+	}
+	
 	
 	public double minDist(PointList list1, PointList list2){
 		
@@ -509,11 +579,160 @@ public class OCOHAlgorithm {
 			Point p23 = new Point(list2.points.get(2).posX, list2.points.get(2).posY);
 			Rectangle2 r1 = new Rectangle2((float)p11.posX, (float)p11.posY, (float)(Math.abs((p13.posX - p11.posX))), (float)(Math.abs((p12.posY - p11.posY))));
 			Rectangle2 r2 = new Rectangle2((float)p21.posX, (float)p21.posY, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs((p22.posY - p21.posY))));
-			minDist = RectDistanceToRect(r1, r2);
+			minDist = rectDistanceToRect(r1, r2);
 		}
 		
 		return minDist;
 		
+	}
+	
+	public Point[] minDistPoints(PointList list1, PointList list2){
+
+		// returns points on list1 and list2 which build
+		// minimum distance between two objects defined by list1 and list2
+		// minDistPoints[0] of list1, minDistPoints[1] of list2: needs to be checked!!!!
+		
+		Point[] minDistPoints = new Point[2];
+		
+		double minDist = Double.POSITIVE_INFINITY;
+		
+		if (list1.getSize() == 1 && list2.getSize() == 1){
+			// minimum distance between two points
+			Point p1 =  new Point(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point p2 =  new Point(list2.points.get(0).posX, list2.points.get(0).posY);
+			minDistPoints[0] = p1;
+			minDistPoints[1] = p2;
+		} else if (list1.getSize() == 1 && list2.getSize() == 2){
+			// minimum distance between a point and a line segment
+			Point2 p1 =  new Point2(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point2 p21 = new Point2(list2.points.get(0).posX, list2.points.get(0).posY);
+			Point2 p22 = new Point2(list2.points.get(1).posX, list2.points.get(1).posY);
+			Segment2 l2 = new Segment2(p21, p22);
+			Point2 p = l2.closestPoint(p1);
+			minDistPoints[0] = new Point(p1.getX(), p1.getY());
+			minDistPoints[1] = new Point(p.getX(), p.getY());
+		} else if (list1.getSize() == 2 && list2.getSize() == 1){
+			// minimum distance between a point and a line segment
+			Point2 p11 = new Point2(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point2 p12 = new Point2(list1.points.get(1).posX, list1.points.get(1).posY);
+			Point2 p2 =  new Point2(list2.points.get(0).posX, list2.points.get(0).posY);
+			Segment2 l1 = new Segment2(p11, p12);
+			Point2 p = l1.closestPoint(p2);
+			minDistPoints[0] = new Point(p.getX(), p.getY());
+			minDistPoints[1] = new Point(p2.getX(), p2.getY());
+		} else if (list1.getSize() == 2 && list2.getSize() == 2){
+			// minimum distance between two line segments
+			Point p11 = new Point(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point p12 = new Point(list1.points.get(1).posX, list1.points.get(1).posY);
+			Point p21 = new Point(list2.points.get(0).posX, list2.points.get(0).posY);
+			Point p22 = new Point(list2.points.get(1).posX, list2.points.get(1).posY);
+			LineSegment l1 = new LineSegment(p11, p12);
+			LineSegment l2 = new LineSegment(p21, p22);
+			minDistPoints = l1.minDistPointsTo(l2);
+		} else if (list1.getSize() == 4 && list2.getSize() == 1){
+			// minimum distance between a rectangle and a point
+			
+			Point p11 = new Point(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point p12 = new Point(list1.points.get(1).posX, list1.points.get(1).posY);
+			Point p13 = new Point(list1.points.get(2).posX, list1.points.get(2).posY);
+			Point p2 =  new Point(list2.points.get(0).posX, list2.points.get(0).posY);
+			Point2 p = new Point2(p2.posX, p2.posY);
+			Rectangle2 r1 = new Rectangle2((float)p11.posX, (float)p11.posY, (float)(Math.abs(p13.posX - p11.posX)), (float)(Math.abs(p12.posY - p11.posY)));
+	
+			if (r1.contains(p)){
+				minDistPoints[0] = p2;
+				minDistPoints[1] = p2;
+			} else {
+				Segment2 s1 = r1.top();
+				Segment2 s2 = r1.bottom();
+				Segment2 s3 = r1.left();
+				Segment2 s4 = r1.right();
+				
+				List<Point2> points = new ArrayList<Point2>();
+				points.add(s1.closestPoint(p));
+				points.add(s2.closestPoint(p));
+				points.add(s3.closestPoint(p));
+				points.add(s4.closestPoint(p));
+	
+				for (int i = 0; i < points.size(); i++){
+					if (p.distance(points.get(i)) < minDist) {
+						minDist = p.distance(points.get(i));
+						Point2 q = points.get(i);
+						minDistPoints[0] = new Point(q.getX(), q.getY());
+					}
+				}
+				minDistPoints[1] = new Point(p2.getX(), p2.getY());
+			}
+			
+		} else if (list1.getSize() == 1 && list2.getSize() == 4){
+			// minimum distance between a rectangle and a point
+			Point p21 = new Point(list2.points.get(0).posX, list2.points.get(0).posY);
+			Point p22 = new Point(list2.points.get(1).posX, list2.points.get(1).posY);
+			Point p23 = new Point(list2.points.get(2).posX, list2.points.get(2).posY);
+			Point p1 =  new Point(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point2 p = new Point2(p1.posX, p1.posY);
+			Rectangle2 r2 = new Rectangle2((float)p21.posX, (float)p21.posY, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs((p22.posY - p21.posY))));
+			
+			if (r2.contains(p)){
+				minDistPoints[0] = p1;
+				minDistPoints[1] = p1;
+			} else {
+				Segment2 s1 = r2.top();
+				Segment2 s2 = r2.bottom();
+				Segment2 s3 = r2.left();
+				Segment2 s4 = r2.right();
+				
+				List<Point2> points = new ArrayList<Point2>();
+				points.add(s1.closestPoint(p));
+				points.add(s2.closestPoint(p));
+				points.add(s3.closestPoint(p));
+				points.add(s4.closestPoint(p));
+	
+				for (int i = 0; i < points.size(); i++){
+					if (p.distance(points.get(i)) < minDist) {
+						minDist = p.distance(points.get(i));
+						Point2 q = points.get(i);
+						minDistPoints[1] = new Point(q.getX(), q.getY());
+					}
+				}
+				minDistPoints[0] = new Point(p1.getX(), p1.getY());
+			}
+		} else if (list1.getSize() == 2 && list2.getSize() == 4){
+			
+			// minimum distance between a rectangle and a line segment
+			Point p11 = new Point(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point p12 = new Point(list1.points.get(1).posX, list1.points.get(1).posY);
+			Point p21 = new Point(list2.points.get(0).posX, list2.points.get(0).posY);
+			Point p22 = new Point(list2.points.get(1).posX, list2.points.get(1).posY);
+			Point p23 = new Point(list2.points.get(2).posX, list2.points.get(2).posY);
+			LineSegment l1 = new LineSegment(p11, p12);
+			Rectangle2 r2 = new Rectangle2((float)p21.posX, (float)p21.posY, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs(p22.posY - p21.posY)));
+			minDistPoints = l1.minDistPointsTo(r2);
+		} else if (list1.getSize() == 4 && list2.getSize() == 2){
+			
+			// minimum distance between a rectangle and a line segment
+			Point p11 = new Point(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point p12 = new Point(list1.points.get(1).posX, list1.points.get(1).posY);
+			Point p13 = new Point(list1.points.get(2).posX, list1.points.get(2).posY);
+			Point p21 = new Point(list2.points.get(0).posX, list2.points.get(0).posY);
+			Point p22 = new Point(list2.points.get(1).posX, list2.points.get(1).posY);
+			Rectangle2 r1 = new Rectangle2((float)p11.posX, (float)p11.posY, (float)(Math.abs((p13.posX - p11.posX))), (float)(Math.abs((p12.posY - p11.posY))));
+			LineSegment l2 = new LineSegment(p21, p22);
+			minDistPoints = l2.minDistPointsTo(r1);
+		} else if (list1.getSize() == 4 && list2.getSize() == 4){
+			// minimum distance between two rectangles
+			Point p11 = new Point(list1.points.get(0).posX, list1.points.get(0).posY);
+			Point p12 = new Point(list1.points.get(1).posX, list1.points.get(1).posY);
+			Point p13 = new Point(list1.points.get(2).posX, list1.points.get(2).posY);
+			Point p21 = new Point(list2.points.get(0).posX, list2.points.get(0).posY);
+			Point p22 = new Point(list2.points.get(1).posX, list2.points.get(1).posY);
+			Point p23 = new Point(list2.points.get(2).posX, list2.points.get(2).posY);
+			Rectangle2 r1 = new Rectangle2((float)p11.posX, (float)p11.posY, (float)(Math.abs((p13.posX - p11.posX))), (float)(Math.abs((p12.posY - p11.posY))));
+			Rectangle2 r2 = new Rectangle2((float)p21.posX, (float)p21.posY, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs((p22.posY - p21.posY))));
+			minDistPoints = minDistPointsRects(r1, r2);
+		}
+		
+		return minDistPoints;
 	}
 	
 	public double maxDist(PointList list1, PointList list2){
@@ -521,7 +740,7 @@ public class OCOHAlgorithm {
 		// returns max distance between p in list 1 and q in list 2
 
 		double maxDist = Double.NEGATIVE_INFINITY;
-		ArrayList<Double> distances = new ArrayList<Double>();
+		List<Double> distances = new ArrayList<Double>();
 		
 		for (int i = 0; i < list1.getSize(); i++){
 			for (int j = 0; j < list2.getSize(); j++){
@@ -536,11 +755,48 @@ public class OCOHAlgorithm {
 		return maxDist;
 		
 	}
+	/**
+	 * 
+	 * @param list1
+	 * @param list2
+	 * @return Point[] maxDistPoints
+	 * 		maxDistPoints[0] on list1, maxDistPoints[1] on list2
+	 */
+	public Point[] maxDistPoints(PointList list1, PointList list2){
+		
+		double maxDist = Double.NEGATIVE_INFINITY;
+		
+		Point[] maxDistPoints = new Point[2]; // Point[0] on list1, Point[1] on list2
+		
+		HashMap<Double, Point[]> distAndPoints = new HashMap<Double, Point[]>();
+		Double distance;
+		Point[] points = new Point[2];
+		
+		for (int i = 0; i < list1.getSize(); i++){
+			for (int j = 0; j < list2.getSize(); j++){
+				
+				distance = Math.sqrt(list1.points.get(i).distanceSquaredTo(list2.points.get(j)));
+				points[0] = list1.getPoints().get(i);
+				points[1] = list2.getPoints().get(j);
+				distAndPoints.put(distance, points);
+			}
+		}
+
+		for (Double dist : distAndPoints.keySet()){
+			if (dist > maxDist) maxDist = dist;
+		}
+		
+		// find points to max dist
+		maxDistPoints = distAndPoints.get(maxDist);
+		
+		return maxDistPoints;
+		
+	}
 	
 	public double maxDistInSet(PointList S){
 		// returns max distance between two points in set S
 		double maxDist = Double.NEGATIVE_INFINITY;
-		ArrayList<Double> distances = new ArrayList<Double>();
+		List<Double> distances = new ArrayList<Double>();
 		for (int i = 0; i < S.points.size(); i++){
 			for (int j = 0; j < S.points.size(); j++){
 				distances.add(Math.sqrt(S.points.get(i).distanceSquaredTo(S.points.get(j))));
@@ -554,7 +810,42 @@ public class OCOHAlgorithm {
 		return maxDist;
 	}
 	
-	public double RectDistanceToRect(Rectangle2 rect1, Rectangle2 rect2){
+	public Point[] minDistPointsRects(Rectangle2 rect1, Rectangle2 rect2){
+		
+		Point[] minDistPoints = new Point[2];
+		double minDist = Double.POSITIVE_INFINITY;
+		
+		Segment2 s1 = rect1.top();
+		Segment2 s2 = rect1.bottom();
+		Segment2 s3 = rect1.left();
+		Segment2 s4 = rect1.right();
+		
+		LineSegment l1 = new LineSegment(new Point(s1.source().getX(),s1.source().getY()),
+				new Point(s1.target().getX(),s1.target().getY()));
+		LineSegment l2 = new LineSegment(new Point(s2.source().getX(),s2.source().getY()),
+				new Point(s2.target().getX(),s2.target().getY()));
+		LineSegment l3 = new LineSegment(new Point(s3.source().getX(),s3.source().getY()),
+				new Point(s3.target().getX(),s3.target().getY()));
+		LineSegment l4 = new LineSegment(new Point(s4.source().getX(),s4.source().getY()),
+				new Point(s4.target().getX(),s4.target().getY()));
+		
+		List<Point[]> points = new ArrayList<Point[]>();
+		points.add(l1.minDistPointsTo(rect2));
+		points.add(l2.minDistPointsTo(rect2));
+		points.add(l3.minDistPointsTo(rect2));
+		points.add(l4.minDistPointsTo(rect2));
+		
+		for (int i = 0; i < points.size(); i++){
+			if (Math.sqrt(points.get(i)[0].distanceSquaredTo(points.get(i)[1])) < minDist) {
+				minDist = Math.sqrt(points.get(i)[0].distanceSquaredTo(points.get(i)[1]));
+				minDistPoints = points.get(i);
+			}
+		}
+		
+		return minDistPoints;
+	}
+	
+	public double rectDistanceToRect(Rectangle2 rect1, Rectangle2 rect2){
 		// return min dist between two rects
 		
 		if (rectContainsRect(rect1, rect2) || rectContainsRect(rect2, rect1)) return 0;
@@ -575,7 +866,7 @@ public class OCOHAlgorithm {
 		LineSegment l4 = new LineSegment(new Point(s4.source().getX(),s4.source().getY()),
 				new Point(s4.target().getX(),s4.target().getY()));
 		
-		ArrayList<Double> distances = new ArrayList<Double>();
+		List<Double> distances = new ArrayList<Double>();
 		distances.add(l1.distanceTo(rect2));
 		distances.add(l2.distanceTo(rect2));
 		distances.add(l3.distanceTo(rect2));
@@ -596,8 +887,19 @@ public class OCOHAlgorithm {
 		} else return false;
 	}
 	
-	public boolean RectContainsCircle(Circle2 circ, Rectangle2 rect){
+	public boolean rectContainsCircle(Circle2 circ, Rectangle2 rect){
 		// returns true if the circle is fully contained in rect
+		/*
+		 * p11---p15---p12
+		 * |			|
+		 * |			|
+		 * p17		   p18
+		 * |			|
+		 * |			|
+		 * p14---p16---p13
+		 */
+		
+		
 		
 		float r = circ.radius;
 		Point2 circMid = circ.centre;
@@ -605,8 +907,15 @@ public class OCOHAlgorithm {
 		Point2 p12 = new Point2(rect.getX() + rect.width, rect.getY()); // upper right
 		Point2 p13 = new Point2(rect.getX() + rect.width, rect.getY() + rect.height);//lower right
 		Point2 p14 = new Point2(rect.getX(), rect.getY() + rect.height); // lower left
-		if (rect.contains(circMid)&&(p11.distance(circMid) >= r) && (p12.distance(circMid) >= r) 
-				&& (p13.distance(circMid) >= r) && (p14.distance(circMid) >= r)){
+		Point2 p15 = new Point2(p11.getX() + 0.5*rect.width, p11.getY()); // point between p11 and p12
+		Point2 p16 = new Point2(p14.getX() + 0.5*rect.width, p14.getY()); // point between p14 and p13
+		Point2 p17 = new Point2(p11.getX(), p11.getY() + 0.5*rect.height); // point between p11 and p14
+		Point2 p18 = new Point2(p12.getX(), p12.getY() + 0.5*rect.height); // point between p13 and p12
+		if (rect.contains(circMid)
+				&& (p11.distance(circMid) >= r) && (p12.distance(circMid) >= r) 
+				&& (p13.distance(circMid) >= r) && (p14.distance(circMid) >= r) 
+				&& (p15.distance(circMid) >= r) && (p16.distance(circMid) >= r)
+				&& (p17.distance(circMid) >= r)&& (p18.distance(circMid) >= r)){
 			return true;
 		} 
 		
@@ -614,52 +923,44 @@ public class OCOHAlgorithm {
 		
 		
 	}
-	
-	public Point CircleRectInt(Circle2 circ, Rectangle2 rect){
-		// returns one intersection point between circ and rect on rect
-		Point intersectionPoint = null;
+	/**
+	 * 
+	 * @param circ
+	 * @param rect
+	 * @return PoinList object, list of intersection points between the circle and the rectangle. 
+	 * 			If the rectangle contains the circle, then one point on the circle arc  
+	 */
+	public PointList circleRectInt(Circle2 circ, Rectangle2 rect){
+		// returns intersection points between circ and rect on rect
+		
+		PointList interPoints = new PointList(Color.CYAN);
+
+		// if circle is contained in rect, then return one point on circle arc
+		if (rectContainsCircle(circ, rect)){
+			interPoints.addPoint(new Point(circ.centre.getX() + circ.radius, circ.centre.getY()));
+			return interPoints;
+		}
 		
 		Segment2 s1 = rect.top();
 		Segment2 s2 = rect.bottom();
 		Segment2 s3 = rect.left();
 		Segment2 s4 = rect.right();
 
-		Intersection i1 = circ.intersection(s1);
-		Intersection i2 = circ.intersection(s2);
-		Intersection i3 = circ.intersection(s3);
-		Intersection i4 = circ.intersection(s4);
-		Intersection i = null;
+		List<Intersection> inters = new ArrayList<Intersection>();
+		inters.add(circ.intersection(s1));
+		inters.add(circ.intersection(s2));
+		inters.add(circ.intersection(s3));
+		inters.add(circ.intersection(s4));
 		
-		if (i1.getList().length() < 1){
-			if (i2.getList().length() < 1){
-				if (i3.getList().length() < 1){
-					if (i4.getList().length() < 1){
-						if (RectContainsCircle(circ, rect)){
-							intersectionPoint = new Point(circ.centre.getX() + circ.radius, circ.centre.getY());
-						}
-					} else {
-						i = i4;
-					}
-				} else {
-					i = i3;
-				}
-			} else {
-				i = i2;
-			}
-		} else {
-			i = i1; 
-		}
-		if (i != null){
-			if (i.getList() != null){
-				SimpleList list = i.getList();
-				if (list.getValueAt(0) instanceof Point2) {
-					Point2 p = (Point2) list.getValueAt(0);
-					intersectionPoint = new Point(p.getX(), p.getY());
-				}
+		for(Intersection intersection : inters){
+			for(int i = 0; i < intersection.getList().length(); i++ ){
+				Point2 q = (Point2)intersection.getList().getValueAt(i);
+				Point p = new Point(q.getX(), q.getY());
+				interPoints.addPoint(p);
 			}
 		}
 		
-		return intersectionPoint;
+		return interPoints;
 		
 	}
 	
@@ -692,11 +993,11 @@ public class OCOHAlgorithm {
 			
 		} else {
 			// we can move in x direction
-			xLength = currentCenter.posX + radius - extrema[1].posX;
+			xLength = Math.abs(currentCenter.posX + radius - extrema[1].posX);
 			xStart = currentCenter.posX - xLength;
 			xEnd = currentCenter.posX + xLength;
 		}
-		
+		//TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		// find Y coordinates
 		currentCenter = new Point(extrema[2].posX, extrema[2].posY + radius);
 		if (currentCenter.posY + radius == extrema[3].posY) {
@@ -705,7 +1006,7 @@ public class OCOHAlgorithm {
 			yEnd = yStart;
 		} else {
 			// we can move in y direction
-			yLength = currentCenter.posY + radius - extrema[3].posY;
+			yLength = Math.abs(currentCenter.posY + radius - extrema[3].posY);
 			yStart = currentCenter.posY - yLength;
 			yEnd = currentCenter.posY + yLength;
 		}

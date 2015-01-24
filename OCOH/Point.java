@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 import anja.geom.Rectangle2;
 import anja.geom.Segment2;
@@ -126,7 +127,7 @@ public class Point{
 		LineSegment l4 = new LineSegment(new Point(s4.source().getX(),s4.source().getY()),
 				new Point(s4.target().getX(),s4.target().getY()));
 		
-		ArrayList<Double> distances = new ArrayList<Double>();
+		List<Double> distances = new ArrayList<Double>();
 		distances.add(l1.distanceTo(this));
 		distances.add(l2.distanceTo(this));
 		distances.add(l3.distanceTo(this));

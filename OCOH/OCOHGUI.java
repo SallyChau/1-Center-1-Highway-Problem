@@ -340,10 +340,10 @@ public class OCOHGUI extends JPanel {
 			public void actionPerformed(ActionEvent arg0) {
 				if(stepCounter < algorithm.L.length-1){
 					stepCounter ++;
-				}
+				} 
 				repaint();
 				
-//				algorithm.a++; //erhöht center radius
+				
 				
 			}});
 		
@@ -388,28 +388,27 @@ public class OCOHGUI extends JPanel {
 			runAlgorithm();
 			if(algorithm.L.length > 0 ){
 				
-//				for(int i = 0; i < customersList.getSize(); i++){
-//					for(int j = 0; j < customersList.getSize(); j++){
-//						algorithm.DL[stepCounter][j].draw(g);
-//						algorithm.UR[stepCounter][j].draw(g);
-					
-//					 draw smallest axis-aligned bounding box
-//					if (!algorithm.DL[stepCounter][j].isEmpty()){
-//					g.setColor(Color.BLUE);
-//					g.drawRect((int)algorithm.XDL[stepCounter][j][0].posX, (int)algorithm.XDL[stepCounter][j][2].posY,
-//							(int)Math.abs(algorithm.XDL[stepCounter][j][0].posX - algorithm.XDL[stepCounter][j][1].posX), 
-//							(int)Math.abs(algorithm.XDL[stepCounter][j][2].posY - algorithm.XDL[stepCounter][j][3].posY));
+//				
+//				algorithm.DL[stepCounter][stepCounter1].draw(g);
+//				algorithm.UR[stepCounter][stepCounter1].draw(g);
+//				
+////					draw smallest axis-aligned bounding box
+//				if (!algorithm.DL[stepCounter][stepCounter1].isEmpty()){
+//				g.setColor(Color.BLUE);
+//				g.drawRect((int)algorithm.XDL[stepCounter][stepCounter1][0].posX, (int)algorithm.XDL[stepCounter][stepCounter1][2].posY,
+//						(int)Math.abs(algorithm.XDL[stepCounter][stepCounter1][0].posX - algorithm.XDL[stepCounter][stepCounter1][1].posX), 
+//						(int)Math.abs(algorithm.XDL[stepCounter][stepCounter1][2].posY - algorithm.XDL[stepCounter][stepCounter1][3].posY));
+//				}
+//				if (!algorithm.UR[stepCounter][stepCounter1].isEmpty()){
+//				g.setColor(Color.RED);
+//				g.drawRect((int)algorithm.XUR[stepCounter][stepCounter1][0].posX, (int)algorithm.XUR[stepCounter][stepCounter1][2].posY,
+//						(int)Math.abs(algorithm.XUR[stepCounter][stepCounter1][0].posX - algorithm.XUR[stepCounter][stepCounter1][1].posX), 
+//						(int)Math.abs(algorithm.XUR[stepCounter][stepCounter1][2].posY - algorithm.XUR[stepCounter][stepCounter1][3].posY));
 //					}
-//					if (!algorithm.UR[stepCounter][j].isEmpty()){
-//					g.setColor(Color.RED);
-//					g.drawRect((int)algorithm.XUR[stepCounter][j][0].posX, (int)algorithm.XUR[stepCounter][j][2].posY,
-//							(int)Math.abs(algorithm.XUR[stepCounter][j][0].posX - algorithm.XUR[stepCounter][j][1].posX), 
-//							(int)Math.abs(algorithm.XUR[stepCounter][j][2].posY - algorithm.XUR[stepCounter][j][3].posY));
-//					}
-//					}
-				
+//				
 				algorithm.L[stepCounter].draw(g);
 				algorithm.R[stepCounter].draw(g);
+				
 				
 				// draw smallest axis-aligned bounding box
 				g.setColor(Color.BLUE);
@@ -448,9 +447,10 @@ public class OCOHGUI extends JPanel {
 							Math.abs((int)algorithm.c2[stepCounter].points.get(2).getX()-(int)algorithm.c2[stepCounter].points.get(0).getX()), 
 							Math.abs((int)algorithm.c2[stepCounter].points.get(1).getY())-(int)algorithm.c2[stepCounter].points.get(0).getY());
 				}
-					
+//					
 					algorithm.facilityPointsLR[stepCounter].draw(g);
 					algorithm.turnpikePointsLR[stepCounter].draw(g);
+//					algorithm.interPoints.draw(g);
 //					g.drawOval((int)(algorithm.circ.centre.getX()-algorithm.circ.radius), (int)(algorithm.circ.centre.getY()-algorithm.circ.radius),
 //							(int)(2*algorithm.circ.radius), (int)(2*algorithm.circ.radius));
 //					g.fillOval((int)(algorithm.circ.centre.getX()-2.5), (int)(algorithm.circ.centre.getY()-2.5),

@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 
 import anja.geom.Intersection;
 import anja.geom.Line2;
@@ -113,6 +114,41 @@ public class LineSegment {
 		return false;
 	}
 	
+	public Point[] minDistPointsTo(Rectangle2 rect){
+		
+		Point[] minDistPoints = new Point[2];
+		double dist = Double.POSITIVE_INFINITY;
+		
+		Segment2 s1 = rect.top();
+		Segment2 s2 = rect.bottom();
+		Segment2 s3 = rect.left();
+		Segment2 s4 = rect.right();
+		
+		LineSegment l1 = new LineSegment(new Point(s1.source().getX(),s1.source().getY()),
+				new Point(s1.target().getX(),s1.target().getY()));
+		LineSegment l2 = new LineSegment(new Point(s2.source().getX(),s2.source().getY()),
+				new Point(s2.target().getX(),s2.target().getY()));
+		LineSegment l3 = new LineSegment(new Point(s3.source().getX(),s3.source().getY()),
+				new Point(s3.target().getX(),s3.target().getY()));
+		LineSegment l4 = new LineSegment(new Point(s4.source().getX(),s4.source().getY()),
+				new Point(s4.target().getX(),s4.target().getY()));
+		
+		List<Point[]> points = new ArrayList<Point[]>();
+		points.add(this.minDistPointsTo(l1));
+		points.add(this.minDistPointsTo(l2));
+		points.add(this.minDistPointsTo(l3));
+		points.add(this.minDistPointsTo(l4));
+		
+		for (int i = 0; i < points.size(); i++){
+			if (Math.sqrt(points.get(i)[0].distanceSquaredTo(points.get(i)[1])) < dist) {
+				dist = Math.sqrt(points.get(i)[0].distanceSquaredTo(points.get(i)[1]));
+				minDistPoints = points.get(i);
+			}
+		}
+		
+		return minDistPoints;
+	}
+	
 	public double distanceTo(Rectangle2 rect){
 		double dist = Double.POSITIVE_INFINITY;
 		
@@ -130,7 +166,7 @@ public class LineSegment {
 		LineSegment l4 = new LineSegment(new Point(s4.source().getX(),s4.source().getY()),
 				new Point(s4.target().getX(),s4.target().getY()));
 		
-		ArrayList<Double> distances = new ArrayList<Double>();
+		List<Double> distances = new ArrayList<Double>();
 		distances.add(this.distanceTo(l1));
 		distances.add(this.distanceTo(l2));
 		distances.add(this.distanceTo(l3));
@@ -143,11 +179,12 @@ public class LineSegment {
 		return dist;
 		
 	}
+
 	
 	public Point[] minDistPointsTo(LineSegment l){
 		// distance between 2 segments in the plane
 		
-		ArrayList<Double> distances = new ArrayList<Double>();
+		List<Double> distances = new ArrayList<Double>();
 		double minDist = Double.POSITIVE_INFINITY;
 		int minIndex;
 		
@@ -179,7 +216,7 @@ public class LineSegment {
 		minIndex = distances.indexOf(minDist);
 		minDistPoints[0] = segmentPoints[minIndex];
 		
-		ArrayList<Double> dist = new ArrayList<Double>();
+		List<Double> dist = new ArrayList<Double>();
 		
 		// min dist point lies either on orthogonal line on 2nd segment or is end points of 2nd line segment
 		// find second minDist point
@@ -223,7 +260,7 @@ public class LineSegment {
 	public Double distanceTo(LineSegment l){
 		// distance between 2 segments in the plane
 		
-		ArrayList<Double> distances = new ArrayList<Double>();
+		List<Double> distances = new ArrayList<Double>();
 		double minDist = Double.POSITIVE_INFINITY;
 		
 		if (intersectsWith(l)) return 0.0;
