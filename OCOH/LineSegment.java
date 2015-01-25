@@ -180,15 +180,26 @@ public class LineSegment {
 		
 	}
 
+	public Point[] minDistPointsTo(Point p){
+		Point2 p2 = new Point2(p.posX, p.posY);
+		Point2 sStart = new Point2(this.start.posX, this.start.posY);
+		Point2 sEnd = new Point2(this.end.posX, this.end.posY);
+		Segment2 seg = new Segment2(sStart, sEnd);
+		
+		Point2 q = seg.closestPoint(p2);
+		Point[] minDistPoints = new Point[2];
+		minDistPoints[0] = new Point(q.getX(), q.getY());
+		minDistPoints[1] = p;
+		
+		return minDistPoints;
+	}
 	
 	public Point[] minDistPointsTo(LineSegment l){
 		// distance between 2 segments in the plane
 		
 		List<Double> distances = new ArrayList<Double>();
 		double minDist = Double.POSITIVE_INFINITY;
-		int minIndex;
 		
-		Point[] segmentPoints = new Point[] {start, end, l.start, l.end};
 		Point[] minDistPoints = new Point[2]; // points which span min distance
 		
 		if (intersectsWith(l)) {
@@ -204,56 +215,19 @@ public class LineSegment {
 			
 			return minDistPoints;
 		}
-		distances.add(l.distanceTo(start));
-		distances.add(l.distanceTo(end));
-		distances.add(distanceTo(l.start));
-		distances.add(distanceTo(l.end));
 		
-		//find points which span min distance
-		for (double dist : distances){
-			if (dist < minDist) minDist = dist;
-		}
-		minIndex = distances.indexOf(minDist);
-		minDistPoints[0] = segmentPoints[minIndex];
+		List<Point[]> points = new ArrayList<Point[]>();
+		points.add(this.minDistPointsTo(l.start));
+		points.add(this.minDistPointsTo(l.end));
+		points.add(l.minDistPointsTo(start));
+		points.add(l.minDistPointsTo(end));
 		
-		List<Double> dist = new ArrayList<Double>();
-		
-		// min dist point lies either on orthogonal line on 2nd segment or is end points of 2nd line segment
-		// find second minDist point
-		
-		if (minIndex < 2){
-			
-			// First point lies on Segment 1 -> 2nd Point on Segment 2
-			
-			dist.add(Math.sqrt(minDistPoints[0].distanceSquaredTo(l.start)));
-			dist.add(Math.sqrt(minDistPoints[0].distanceSquaredTo(l.end)));
-			dist.add(l.distanceTo(minDistPoints[0]));
-			if (dist.indexOf(Collections.min(dist)) == 0) minDistPoints[1] = l.start;
-			else if (dist.indexOf(Collections.min(dist)) == 1) minDistPoints[1] = l.end;
-			else {
-				// find point on 2nd segment
-				String pos = l.relativePosTo(minDistPoints[0]);
-				if (pos == "right" || pos == "left") minDistPoints[1] = new Point(minDistPoints[0].posY, l.start.posX);
-				else if (pos == "up" || pos == "down") minDistPoints[1] = new Point(minDistPoints[0].posX, l.start.posY);	
-			}
-		} else {
-			
-			// First point lies on Segment 2 -> 2nd Point on Segment 1
-			
-			dist.add(Math.sqrt(minDistPoints[0].distanceSquaredTo(start)));
-			dist.add(Math.sqrt(minDistPoints[0].distanceSquaredTo(end)));
-			dist.add(distanceTo(minDistPoints[0]));
-			if (dist.indexOf(Collections.min(dist)) == 0) minDistPoints[1] = start;
-			else if (dist.indexOf(Collections.min(dist)) == 1) minDistPoints[1] = end;
-			else {
-				// find point on 2nd segment
-				String pos = relativePosTo(minDistPoints[0]);
-				if (pos == "right" || pos == "left") minDistPoints[1] = new Point(minDistPoints[0].posY, start.posX);
-				else if (pos == "up" || pos == "down") minDistPoints[1] = new Point(minDistPoints[0].posX, start.posY);	
+		for (int i = 0; i < points.size(); i++){
+			if (Math.sqrt(points.get(i)[0].distanceSquaredTo(points.get(i)[1])) < minDist){
+				minDist = Math.sqrt(points.get(i)[0].distanceSquaredTo(points.get(i)[1]));
+				minDistPoints = points.get(i);
 			}
 		}
-		
-		
 		return minDistPoints;
 	}
 	
@@ -262,12 +236,11 @@ public class LineSegment {
 		
 		List<Double> distances = new ArrayList<Double>();
 		double minDist = Double.POSITIVE_INFINITY;
-		
-		if (intersectsWith(l)) return 0.0;
-		distances.add(l.distanceTo(start));
-		distances.add(l.distanceTo(end));
-		distances.add(distanceTo(l.start));
-		distances.add(distanceTo(l.end));
+	
+		distances.add(l.distTo(start));
+		distances.add(l.distTo(end));
+		distances.add(distTo(l.start));
+		distances.add(distTo(l.end));
 		
 		for (double dist : distances){
 			if (dist < minDist) minDist = dist;
@@ -321,40 +294,18 @@ public class LineSegment {
 		
 	}
 	
-	public double distanceTo(Point p){
-		// distance between point p and segment (q1,q2)
+
+	public double distTo(Point p){
+		// uses Segment2
 		
-		double dx = end.posX - start.posX;
-		double dy = end.posY - start.posY;
-		Point point = new Point(p.posX - start.posX, p.posY - start.posY);
-		Point origin = new Point(0, 0);
+		Point2 p2 = new Point2(p.posX, p.posY);
+		Point2 sStart = new Point2(this.start.posX, this.start.posY);
+		Point2 sEnd = new Point2(this.end.posX, this.end.posY);
+		Segment2 seg = new Segment2(sStart, sEnd);
 		
-		if ((dx == dy) && (dy == 0)){
-			// segment is just a point
-			return Math.sqrt(origin.distanceSquaredTo(point));
-		}
-		
-		// calculate t that minimizes the distance
-		double t = ((p.posX - start.posX) * dx + (p.posY - start.posY) * dy)/(dx * dx + dy * dy);
-		
-		// See if this represents one of the segment's end points or a point in the middle.
-		if (t < 0){
-		    dx = p.posX - start.posX;
-		    dy = p.posY - start.posY;
-		} else if(t > 1){
-		    dx = p.posX - end.posX;
-		    dy = p.posY - end.posY;
-		} else {
-		    double near_x = start.posX + t * dx;
-		    double near_y = start.posY + t * dy;
-		    dx = p.posX - near_x;
-		    dy = p.posY - near_y;
-		}
-		
-		return Math.sqrt(new Point(dx, dy).distanceSquaredTo(origin));
+		return seg.distance(p2);
 		
 	}
-	
 	
 	
 	

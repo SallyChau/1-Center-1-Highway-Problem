@@ -20,8 +20,11 @@ import anja.util.SimpleList;
 
 public class OCOHAlgorithm {
 	
-		Circle2 circ;
-		PointList interPoints;
+		Point[] minDist1;
+		Point[] minDist2;
+		Point[] maxDist1;
+		Point[] maxDist2;
+		
 		Point currentFacility = new Point(); // turnpike endpoint CHECK WHETHER CURRENT POINTS ARE CORRECT
 		Point currentTurnpikeStart = new Point();
 		double currentRadius = 0;
@@ -58,6 +61,7 @@ public class OCOHAlgorithm {
 		
 	public void runAlgorithm(PointList customers, int highWayLength, int velocity) {
 		
+		
 		if (!customers.isEmpty()){
 			
 			this.highwayLength = highWayLength;
@@ -71,6 +75,10 @@ public class OCOHAlgorithm {
 			facilityPointsLR = new Point[customers.getSize()-1];
 			turnpikePointsLR = new Point[customers.getSize()-1];
 			partitionRadiusLR = new double[customers.getSize()-1];
+			maxDist1 = new Point[customers.getSize()-1];
+			maxDist2 = new Point[customers.getSize()-1];
+			minDist1 = new Point[customers.getSize()-1];
+			minDist2 = new Point[customers.getSize()-1];
 			
 			UR = new PointList[customers.getSize()][customers.getSize()];
 			DL = new PointList[customers.getSize()][customers.getSize()];
@@ -110,12 +118,25 @@ public class OCOHAlgorithm {
 
 				eps1 = Math.max(0, L[i].delta() + highwayLength/velocity - R[i].delta());
 				eps2 = Math.max(0, R[i].delta() - L[i].delta() - highwayLength/velocity);
-				solveBasicProblem(L[i], R[i]);
+//				solveBasicProblem(L[i], R[i]);
+				solveBP(L[i], R[i]); 
 				facilityPointsLR[i] = currentFacility;
 				turnpikePointsLR[i] = currentTurnpikeStart;
 				partitionRadiusLR[i] = currentRadius;
 				c1[i] = center(L[i], L[i].delta() + eps2 + x);
 				c2[i] = center(R[i], R[i].delta() + eps1 + x);
+
+				if (contains(c1[i], minDistPoints(c1[i], c2[i])[0])){
+					minDist1[i] = minDistPoints(c1[i], c2[i])[0]; 
+					minDist2[i] = minDistPoints(c1[i], c2[i])[1];
+				} else {
+					minDist1[i] = minDistPoints(c1[i], c2[i])[1]; 
+					minDist2[i] = minDistPoints(c1[i], c2[i])[0];
+				}
+				
+				maxDist1[i] = maxDistPoints(c1[i], c2[i])[0]; 
+				maxDist2[i] = maxDistPoints(c1[i], c2[i])[1];
+				
 			
 				
 //				System.out.println("Facility: " + facilityPointsLR[i].toString() + " T: " + turnpikePointsLR[i]);
@@ -126,7 +147,7 @@ public class OCOHAlgorithm {
 			// case c)
 			// Find extreme points for all sets UR_i,j
 			
-			System.out.println(currentFacility.toString() + " T: " + currentTurnpikeStart);
+			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
 			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
 			
 		}
@@ -210,7 +231,6 @@ public class OCOHAlgorithm {
 		Point2 iPoint = (Point2) i.getList().getValueAt(0);
 		Point t = new Point(p1.getX(), p1.getY());
 		Point f = new Point(iPoint.getX(), iPoint.getY());
-		circ = c;
 		setCurrentFacility(f);
 		setCurrentTurnpike(t);
 	}
@@ -251,7 +271,7 @@ public class OCOHAlgorithm {
 						interPoints.addPoint(p);
 					}
 					t = new Point(circs.get(i).centre.getX(), circs.get(i).centre.getY());
-					circ = circs.get(i);
+					
 					setCurrentTurnpike(t);
 					for(int j = 0; j < interPoints.getSize(); j++){
 						if (!interPoints.points.get(j).equals(t)) {
@@ -330,7 +350,7 @@ public class OCOHAlgorithm {
 						interPoints.addPoint(p);
 					}
 					t = new Point(circs.get(i).centre.getX(), circs.get(i).centre.getY());
-					circ = circs.get(i);
+					
 					setCurrentTurnpike(t);
 					for(int j = 0; j < interPoints.getSize(); j++){
 						if (!interPoints.points.get(j).equals(t)) {
@@ -436,9 +456,8 @@ public class OCOHAlgorithm {
 					Point p = inters.get(i).points.get(j);
 					interPoints.addPoint(p);
 				}
-				this.interPoints = interPoints;
 				t = new Point(circs.get(i).centre.getX(), circs.get(i).centre.getY());
-				circ = circs.get(i);
+			
 				setCurrentTurnpike(t);
 				for(int j = 0; j < interPoints.getSize(); j++){
 					if (!interPoints.points.get(j).equals(t)) {
@@ -490,14 +509,103 @@ public class OCOHAlgorithm {
 		
 		PointList centers1 = center(list1, list1.delta() + e2 + x); // Center(H, d(H)+e2+x)
 		PointList centers2 = center(list2, list2.delta() + e1 + x); // Center(W, d(W)+e1+x)
+		
+		Point l1Start = new Point();
+		Point l1End = new Point();
+		Point l2Start = new Point();
+		Point l2End = new Point();
+		
 		Point[] minDistPoints = minDistPoints(centers1, centers2);
-		if (!centers1.contains(minDistPoints[0])) {
-			minDistPoints[0] = minDistPoints(centers1, centers2)[1];
-			minDistPoints[1] = minDistPoints(centers1, centers2)[0];
-		}
 		Point[] maxDistPoints = maxDistPoints(centers1, centers2);
+		
+		// find correct lines
+		if (contains(centers1, minDistPoints[0])){
+			l1Start = minDistPoints[0];
+			l2Start = minDistPoints[1];
+		} else {
+			l1Start = minDistPoints[1];
+			l2Start = minDistPoints[0];
+		} 
+		
+		l1End = maxDistPoints[0];
+		l2End = maxDistPoints[1];
+		
+		Point f = new Point();
+		Point t = new Point(); 
+		
+		// parameterize lines
+		Double[] v1 = getDirectionVector(l1Start, l1End);
+		Double[] v2 = getDirectionVector(l2Start, l2End);
+		
+		double r = getParam(l1Start, l2Start, v1, v2);
+		
+		f = new Point(l1Start.posX + r * v1[0], l1Start.posY + r * v1[1]);
+		t = new Point(l2Start.posX + r * v2[0], l2Start.posY + r * v2[1]);
+		
+		setCurrentFacility(f);
+		setCurrentTurnpike(t);
+		 
 	}
 	
+	public boolean contains(PointList list, Point p){
+		// returns true if the object defined by list contains p
+
+		boolean contains = false;
+		Point2 point = new Point2(p.posX, p.posY);
+		
+		if (list.getSize() == 1){
+			if (list.points.get(0).equals(p)) contains = true;
+		} else if (list.getSize() == 2){
+			Point2 p1 = new Point2(list.points.get(0).posX, list.points.get(0).posY);
+			Point2 p2 = new Point2(list.points.get(1).posX, list.points.get(1).posY);
+			Segment2 seg = new Segment2(p1, p2);
+			if(seg.liesOn(point)) contains = true;
+		} else if (list.getSize() == 4){
+			Point p1 = new Point(list.points.get(0).posX, list.points.get(0).posY);
+			Point p2 = new Point(list.points.get(1).posX, list.points.get(1).posY);
+			Point p3 = new Point(list.points.get(2).posX, list.points.get(2).posY);
+			Point p4 = new Point(list.points.get(3).posX, list.points.get(3).posY);
+			Rect r = new Rect(p1, p3, p2, p4);
+			if (r.contains(p)) contains = true;
+		}
+		
+		return contains;
+	}
+	
+	
+	public double getParam(Point p1, Point p2, Double[] v1, Double[] v2){
+		double r;
+		
+		double l = highwayLength;
+		
+		// auxiliary variables
+		double A = (Math.pow(v1[0] - v2[0], 2.0)) + (Math.pow(v1[1] - v2[1], 2.0));
+		double B = (2 * (p1.posX - p2.posX) * (v1[0] - v2[0])) + (2 * (p1.posY - p2.posY) * (v1[1] - v2[1]));
+		double C = (Math.pow(p1.posX - p2.posX, 2.0)) + (Math.pow(p1.posY - p2.posY, 2.0));
+		
+		// using pq formula to find r
+		double phalf = B / (2 * A);
+		double q = ((C - (l * l)) / A);
+		double r1 = - phalf + Math.sqrt((phalf * phalf) - q);
+		double r2 = - phalf - Math.sqrt((phalf * phalf) - q);
+		
+		if (r1 >= 0 && r1 <= 1) r = r1;
+		else r = r2;
+		
+		return r;
+	}
+	
+	public Double[] getDirectionVector(Point p, Point q){
+		// returns the direction vector from point p to point q
+		// v= q-p
+		Double[] v = new Double[2];
+		
+		v[0] = q.posX - p.posX;
+		v[1] = q.posY - p.posY;
+		
+		return v;
+		
+	}
 	
 	public double minDist(PointList list1, PointList list2){
 		
@@ -579,7 +687,12 @@ public class OCOHAlgorithm {
 			Point p23 = new Point(list2.points.get(2).posX, list2.points.get(2).posY);
 			Rectangle2 r1 = new Rectangle2((float)p11.posX, (float)p11.posY, (float)(Math.abs((p13.posX - p11.posX))), (float)(Math.abs((p12.posY - p11.posY))));
 			Rectangle2 r2 = new Rectangle2((float)p21.posX, (float)p21.posY, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs((p22.posY - p21.posY))));
-			minDist = rectDistanceToRect(r1, r2);
+			if(rectContainsRect(r1, r2)){
+				minDist = 0;
+			} else {
+				Point[] points = minDistPoints(list1, list2);
+				minDist = Math.sqrt(points[0].distanceSquaredTo(points[1]));
+			}
 		}
 		
 		return minDist;
@@ -631,38 +744,32 @@ public class OCOHAlgorithm {
 			minDistPoints = l1.minDistPointsTo(l2);
 		} else if (list1.getSize() == 4 && list2.getSize() == 1){
 			// minimum distance between a rectangle and a point
-			
 			Point p11 = new Point(list1.points.get(0).posX, list1.points.get(0).posY);
 			Point p12 = new Point(list1.points.get(1).posX, list1.points.get(1).posY);
 			Point p13 = new Point(list1.points.get(2).posX, list1.points.get(2).posY);
 			Point p2 =  new Point(list2.points.get(0).posX, list2.points.get(0).posY);
 			Point2 p = new Point2(p2.posX, p2.posY);
 			Rectangle2 r1 = new Rectangle2((float)p11.posX, (float)p11.posY, (float)(Math.abs(p13.posX - p11.posX)), (float)(Math.abs(p12.posY - p11.posY)));
-	
-			if (r1.contains(p)){
-				minDistPoints[0] = p2;
-				minDistPoints[1] = p2;
-			} else {
-				Segment2 s1 = r1.top();
-				Segment2 s2 = r1.bottom();
-				Segment2 s3 = r1.left();
-				Segment2 s4 = r1.right();
-				
-				List<Point2> points = new ArrayList<Point2>();
-				points.add(s1.closestPoint(p));
-				points.add(s2.closestPoint(p));
-				points.add(s3.closestPoint(p));
-				points.add(s4.closestPoint(p));
-	
-				for (int i = 0; i < points.size(); i++){
-					if (p.distance(points.get(i)) < minDist) {
-						minDist = p.distance(points.get(i));
-						Point2 q = points.get(i);
-						minDistPoints[0] = new Point(q.getX(), q.getY());
-					}
+
+			Segment2 s1 = r1.top();
+			Segment2 s2 = r1.bottom();
+			Segment2 s3 = r1.left();
+			Segment2 s4 = r1.right();
+			
+			List<Point2> points = new ArrayList<Point2>();
+			points.add(s1.closestPoint(p));
+			points.add(s2.closestPoint(p));
+			points.add(s3.closestPoint(p));
+			points.add(s4.closestPoint(p));
+
+			for (int i = 0; i < points.size(); i++){
+				if (p.distance(points.get(i)) < minDist) {
+					minDist = p.distance(points.get(i));
+					Point2 q = points.get(i);
+					minDistPoints[0] = new Point(q.getX(), q.getY());
 				}
-				minDistPoints[1] = new Point(p2.getX(), p2.getY());
 			}
+			minDistPoints[1] = new Point(p2.getX(), p2.getY());
 			
 		} else if (list1.getSize() == 1 && list2.getSize() == 4){
 			// minimum distance between a rectangle and a point
@@ -672,33 +779,28 @@ public class OCOHAlgorithm {
 			Point p1 =  new Point(list1.points.get(0).posX, list1.points.get(0).posY);
 			Point2 p = new Point2(p1.posX, p1.posY);
 			Rectangle2 r2 = new Rectangle2((float)p21.posX, (float)p21.posY, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs((p22.posY - p21.posY))));
+		
+			Segment2 s1 = r2.top();
+			Segment2 s2 = r2.bottom();
+			Segment2 s3 = r2.left();
+			Segment2 s4 = r2.right();
 			
-			if (r2.contains(p)){
-				minDistPoints[0] = p1;
-				minDistPoints[1] = p1;
-			} else {
-				Segment2 s1 = r2.top();
-				Segment2 s2 = r2.bottom();
-				Segment2 s3 = r2.left();
-				Segment2 s4 = r2.right();
-				
-				List<Point2> points = new ArrayList<Point2>();
-				points.add(s1.closestPoint(p));
-				points.add(s2.closestPoint(p));
-				points.add(s3.closestPoint(p));
-				points.add(s4.closestPoint(p));
-	
-				for (int i = 0; i < points.size(); i++){
-					if (p.distance(points.get(i)) < minDist) {
-						minDist = p.distance(points.get(i));
-						Point2 q = points.get(i);
-						minDistPoints[1] = new Point(q.getX(), q.getY());
-					}
+			List<Point2> points = new ArrayList<Point2>();
+			points.add(s1.closestPoint(p));
+			points.add(s2.closestPoint(p));
+			points.add(s3.closestPoint(p));
+			points.add(s4.closestPoint(p));
+
+			for (int i = 0; i < points.size(); i++){
+				if (p.distance(points.get(i)) < minDist) {
+					minDist = p.distance(points.get(i));
+					Point2 q = points.get(i);
+					minDistPoints[1] = new Point(q.getX(), q.getY());
 				}
-				minDistPoints[0] = new Point(p1.getX(), p1.getY());
 			}
-		} else if (list1.getSize() == 2 && list2.getSize() == 4){
+			minDistPoints[0] = new Point(p1.getX(), p1.getY());
 			
+		} else if (list1.getSize() == 2 && list2.getSize() == 4){
 			// minimum distance between a rectangle and a line segment
 			Point p11 = new Point(list1.points.get(0).posX, list1.points.get(0).posY);
 			Point p12 = new Point(list1.points.get(1).posX, list1.points.get(1).posY);
@@ -709,7 +811,6 @@ public class OCOHAlgorithm {
 			Rectangle2 r2 = new Rectangle2((float)p21.posX, (float)p21.posY, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs(p22.posY - p21.posY)));
 			minDistPoints = l1.minDistPointsTo(r2);
 		} else if (list1.getSize() == 4 && list2.getSize() == 2){
-			
 			// minimum distance between a rectangle and a line segment
 			Point p11 = new Point(list1.points.get(0).posX, list1.points.get(0).posY);
 			Point p12 = new Point(list1.points.get(1).posX, list1.points.get(1).posY);
@@ -729,6 +830,9 @@ public class OCOHAlgorithm {
 			Point p23 = new Point(list2.points.get(2).posX, list2.points.get(2).posY);
 			Rectangle2 r1 = new Rectangle2((float)p11.posX, (float)p11.posY, (float)(Math.abs((p13.posX - p11.posX))), (float)(Math.abs((p12.posY - p11.posY))));
 			Rectangle2 r2 = new Rectangle2((float)p21.posX, (float)p21.posY, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs((p22.posY - p21.posY))));
+			//TODO
+			if(rectContainsRect(r1, r2)){
+			}
 			minDistPoints = minDistPointsRects(r1, r2);
 		}
 		
@@ -767,27 +871,20 @@ public class OCOHAlgorithm {
 		double maxDist = Double.NEGATIVE_INFINITY;
 		
 		Point[] maxDistPoints = new Point[2]; // Point[0] on list1, Point[1] on list2
-		
-		HashMap<Double, Point[]> distAndPoints = new HashMap<Double, Point[]>();
 		Double distance;
-		Point[] points = new Point[2];
 		
 		for (int i = 0; i < list1.getSize(); i++){
 			for (int j = 0; j < list2.getSize(); j++){
 				
 				distance = Math.sqrt(list1.points.get(i).distanceSquaredTo(list2.points.get(j)));
-				points[0] = list1.getPoints().get(i);
-				points[1] = list2.getPoints().get(j);
-				distAndPoints.put(distance, points);
+				
+				if (distance > maxDist){
+					maxDist = distance;
+					maxDistPoints[0] = list1.getPoints().get(i);
+					maxDistPoints[1] = list2.getPoints().get(j);
+				}
 			}
 		}
-
-		for (Double dist : distAndPoints.keySet()){
-			if (dist > maxDist) maxDist = dist;
-		}
-		
-		// find points to max dist
-		maxDistPoints = distAndPoints.get(maxDist);
 		
 		return maxDistPoints;
 		
@@ -997,7 +1094,7 @@ public class OCOHAlgorithm {
 			xStart = currentCenter.posX - xLength;
 			xEnd = currentCenter.posX + xLength;
 		}
-		//TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 		// find Y coordinates
 		currentCenter = new Point(extrema[2].posX, extrema[2].posY + radius);
 		if (currentCenter.posY + radius == extrema[3].posY) {

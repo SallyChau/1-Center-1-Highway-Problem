@@ -410,6 +410,7 @@ public class OCOHGUI extends JPanel {
 				algorithm.R[stepCounter].draw(g);
 				
 				
+				
 				// draw smallest axis-aligned bounding box
 				g.setColor(Color.BLUE);
 				g.drawRect((int)algorithm.XL[stepCounter][0].posX, (int)algorithm.XL[stepCounter][2].posY,
@@ -447,8 +448,20 @@ public class OCOHGUI extends JPanel {
 							Math.abs((int)algorithm.c2[stepCounter].points.get(2).getX()-(int)algorithm.c2[stepCounter].points.get(0).getX()), 
 							Math.abs((int)algorithm.c2[stepCounter].points.get(1).getY())-(int)algorithm.c2[stepCounter].points.get(0).getY());
 				}
-//					
+				
+
+				algorithm.maxDist1[stepCounter].setColor(Color.CYAN);
+				algorithm.maxDist2[stepCounter].setColor(Color.MAGENTA);
+				algorithm.minDist1[stepCounter].setColor(Color.CYAN);
+				algorithm.minDist2[stepCounter].setColor(Color.MAGENTA);
+				algorithm.maxDist1[stepCounter].draw(g);
+				algorithm.maxDist2[stepCounter].draw(g);
+				algorithm.minDist1[stepCounter].draw(g);
+				algorithm.minDist2[stepCounter].draw(g);
+					
+					algorithm.facilityPointsLR[stepCounter].setColor(Color.GREEN);
 					algorithm.facilityPointsLR[stepCounter].draw(g);
+					algorithm.turnpikePointsLR[stepCounter].setColor(Color.ORANGE);
 					algorithm.turnpikePointsLR[stepCounter].draw(g);
 //					algorithm.interPoints.draw(g);
 //					g.drawOval((int)(algorithm.circ.centre.getX()-algorithm.circ.radius), (int)(algorithm.circ.centre.getY()-algorithm.circ.radius),
@@ -463,8 +476,6 @@ public class OCOHGUI extends JPanel {
 //							(int)algorithm.segm2.target().getX(), (int)algorithm.segm2.target().getY());
 //				
 //				}
-				
-				
 				
 			
 								

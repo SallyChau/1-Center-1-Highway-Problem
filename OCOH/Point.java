@@ -128,10 +128,10 @@ public class Point{
 				new Point(s4.target().getX(),s4.target().getY()));
 		
 		List<Double> distances = new ArrayList<Double>();
-		distances.add(l1.distanceTo(this));
-		distances.add(l2.distanceTo(this));
-		distances.add(l3.distanceTo(this));
-		distances.add(l4.distanceTo(this));
+		distances.add(l1.distTo(this));
+		distances.add(l2.distTo(this));
+		distances.add(l3.distTo(this));
+		distances.add(l4.distTo(this));
 		
 		for (double d : distances){
 			if (d < dist) dist = d;
