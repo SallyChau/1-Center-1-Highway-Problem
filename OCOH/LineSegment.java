@@ -3,8 +3,6 @@ package OCOH;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Hashtable;
 import java.util.List;
 
 import anja.geom.Intersection;
@@ -13,8 +11,12 @@ import anja.geom.Point2;
 import anja.geom.Rectangle2;
 import anja.geom.Segment2;
 
-public class LineSegment {
+public class LineSegment extends Segment2{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public Point start;
 	public Point end;
 	
@@ -71,6 +73,12 @@ public class LineSegment {
 
 		return false;
 	}	
+	
+	public boolean contains(Point2 p){
+		
+		return liesOn(p);
+		
+	}
 	
 	public String toString(){
 		

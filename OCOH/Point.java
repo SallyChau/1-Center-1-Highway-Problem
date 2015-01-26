@@ -6,10 +6,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import anja.geom.Point2;
 import anja.geom.Rectangle2;
 import anja.geom.Segment2;
 
-public class Point{
+public class Point {
+
 
 	double posX;
 	
@@ -106,6 +108,12 @@ public class Point{
 		
 	}
 	
+	public boolean contains(Point p){
+		
+		return this.equals(p);
+		
+	}
+	
 	public double distanceTo(Rectangle2 rect){
 		double dist = Double.POSITIVE_INFINITY;
 		
@@ -175,7 +183,7 @@ public class Point{
 		return dist;
 	}
 	
-	public double[] getDirectionVectorTo(Point p){
+	public double[] getNormDirectionVectorTo(Point p){
 		
 		//vector from point to p
 		double[] dir = new double[2];
@@ -189,6 +197,18 @@ public class Point{
 		//normalizing dirVector
 		dir[0] = dir[0] / vectorLength;
 		dir[1] = dir[1] / vectorLength;
+		
+		return dir;
+	}
+	
+public double[] getDirectionVectorTo(Point p){
+		
+		//vector from point to p
+		double[] dir = new double[2];
+		
+		dir[0] = (p.posX - posX);
+		dir[1] = (p.posY - posY);
+		
 		
 		return dir;
 	}
