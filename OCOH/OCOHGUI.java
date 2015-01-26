@@ -3,7 +3,6 @@ package OCOH;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -13,23 +12,16 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.Label;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
 
-import javax.crypto.spec.GCMParameterSpec;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -38,115 +30,80 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-
-
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.border.Border;
 
 import anja.swinggui.JRepeatButton;
-import anja.util.GraphicsContext;
-import appsStandalone.fcvd.voronoi.VoronoiDiagram;
-import appsSwingGui.topoVoro.Arc2_Sweep;
-import appsSwingGui.topoVoro.dcel.DCEL_Edge;
-import appsSwingGui.topoVoro.dcel.DCEL_Face;
+import appsStandalone.BeachCombers.src.de.marcmigge.beachcombers.Algorithm;
 
 public class OCOHGUI extends JPanel {
 
-	int counterCells;
-	Point dragged;
-	Point pointed;
-	
-	int stepCounter = 0; 
-	int stepCounter1 = 0;
-	
-	Listener l = new Listener();
-
 	private static final long serialVersionUID = 1L;
 	
-	JPanel tab_algorithm = new JPanel();
+	// GUI elements
 	
-	JPanel eastPanel = new JPanel();
+	private Graphics g;
+	private static OCOHGUI panel;
+	Listener l = new Listener();
 	
-	JPanel westPanel = new JPanel();
-	
-	JPanel screenPanel = new JPanel();
-	
-    JLabel modesLabel = new JLabel("MODE 1C1H");
-    
-    JLabel underlineModeLabel = new JLabel("________________");
+	// Panels
+	JPanel panel_east = new JPanel();
+	JPanel panel_west = new JPanel();
+	JPanel panel_screen = new JPanel();
 
-	JLabel highwayLabel = new JLabel("Highway: ");
+	// Labels
+	JLabel label_mode = new JLabel("MODE 1C1H");
+	JLabel label_underline = new JLabel("________________");
+	JLabel label_underline1 = new JLabel("________________");
+	JLabel label_underline2 = new JLabel("________________");
+	JLabel label_highway = new JLabel("Highway: ");
+	JLabel label_velocity = new JLabel("Velocity: ");
+	JLabel label_examples = new JLabel("Examples:");
+	JLabel label_algorithm = new JLabel("ALGORITHM");
+	JLabel label_step = new JLabel("Step by step: ");
+	JLabel label_show = new JLabel("SHOW");
 
-	String [] strHighway = {"Turnpike", "Freeway"};
-	JComboBox highwayBox = new JComboBox(strHighway);
+	// Textfields
+	private JTextField text_length = new JTextField("100");
+	private JTextField text_velocity = new JTextField("2");
 	
-	private JTextField txtLength = new JTextField("100");
+	// Buttons
+	JButton button_prev = new JButton("\u25c4");
+	JButton button_next = new JButton("\u25BA");
+	JRepeatButton button_zoomIn = new JRepeatButton();
+	JRepeatButton button_zoomOut = new JRepeatButton();
+	JButton button_clear = new JButton();
 	
-	JCheckBox fixedLengthCheckBox = new JCheckBox("fixed");
-	
-	JLabel velocityLabel = new JLabel("Velocity: ");
+	// Checkbox
+	JCheckBox checkBox_fixedLength = new JCheckBox("fixed");
+	JCheckBox checkBox_run = new JCheckBox("Run.");
+	JCheckBox checkBox_showBalls = new JCheckBox("Balls");
+	JCheckBox checkBox_showFacility = new JCheckBox("Facility");
+	JCheckBox checkBox_showHighway = new JCheckBox("Highway");
+	JCheckBox checkBox_showCustomers = new JCheckBox("Customers");
 
-	JTextField txtVelocity = new JTextField("2");
+	// Combobox
+	String[] string_examples = { "Set points ...", "Example 1", "Example 2", "Example 3" };
+	JComboBox box_examples = new JComboBox(string_examples);
+	String[] string_highways = { "Turnpike", "Freeway" };
+	JComboBox box_highways = new JComboBox(string_highways);
 
-    JLabel examplesLabel = new JLabel("Examples:");
-    
-	String [] strArray = {"Set points ...", "Example 1", "Example 2", "Example 3"};
-	JComboBox examplesBox = new JComboBox(strArray);
-	
-    JLabel algoLabel = new JLabel("ALGORITHM");
-    
-    JLabel underlineAlgoLabel = new JLabel("________________");
+	// Image icons
+	ImageIcon icon_zoomIn = createImageIcon("resources/zoomIn.png");
+	ImageIcon icon_zoomOut = createImageIcon("resources/zoomOut.png");
+	ImageIcon icon_clear = createImageIcon("resources/trash.png");
 
-	JCheckBox startButton = new JCheckBox("Run.");
-	
-	JLabel stepLabel = new JLabel("Step by step: ");
-
-	JButton prevButton = new JButton("\u25c4");
-
-	JButton nextButton = new JButton("\u25BA");
-	
-	JLabel showLabel = new JLabel("SHOW");
-	    
-	JLabel underlineShowLabel = new JLabel("________________");
-	
-	JCheckBox showBalls = new JCheckBox("Balls");
-	
-	JCheckBox showFacility = new JCheckBox("Facility");
-	
-	JCheckBox showHighway = new JCheckBox("Highway");
-	
-	JCheckBox showCustomers = new JCheckBox("Customers");
-	
-	ImageIcon zoomInIcon = createImageIcon("resources/zoomIn.png");
-	
-	ImageIcon zoomOutIcon = createImageIcon("resources/zoomOut.png");
-	
-	ImageIcon trashIcon = createImageIcon("resources/trash.png");
-	
-	JRepeatButton zoomInButton = new JRepeatButton();
-	
-	JRepeatButton zoomOutButton = new JRepeatButton();
-	
-	JButton clearButton = new JButton();
-	
+	// Variables
+	OCOHAlgorithm algorithm;
 	public PointList customersList = new PointList();
 	public int velocity;
 	public int highwayLength;
-
-	private Graphics g;
-
-	
-	OCOHAlgorithm algorithm;
-
-	
-	private static OCOHGUI panel;
-	
+	Point dragged;
+	Point pointed;
+	int stepCounter = 0;
 	
 	private OCOHGUI(OCOHAlgorithm algorithm) {
 		this.algorithm = algorithm;
-		
+
 		defaultButtonSettings();
 		createGUI();
 		addMouseListener(MouseHandler.getMouseHandler(this));
@@ -161,166 +118,149 @@ public class OCOHGUI extends JPanel {
 	}
 
 	public void defaultButtonSettings() {
-		
-		fixedLengthCheckBox.setSelected(true);
-		showCustomers.setSelected(true);
-		startButton.setSelected(true);
-		
+
+		checkBox_fixedLength.setSelected(true);
+		checkBox_showCustomers.setSelected(true);
+		checkBox_run.setSelected(true);
+
 	}
 
 	public void createGUI() {
-		
+
 		setLayout(new BorderLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
-		
-		westPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
-        westPanel.setLayout(new GridBagLayout());
-        
-        // Label "Mode"
-        modesLabel.setFont(new Font("Default", Font.BOLD, 14));
-        gbc.anchor = GridBagConstraints.LINE_START;
+
+		panel_west.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+		panel_west.setLayout(new GridBagLayout());
+
+		// Label "Mode"
+		label_mode.setFont(new Font("Default", Font.BOLD, 14));
+		gbc.anchor = GridBagConstraints.LINE_START;
 		gbc.gridx = 0;
 		gbc.gridy = 0;
-		westPanel.add(modesLabel, gbc);
-		gbc.insets = new Insets(10,0,3,0);
-		westPanel.add(underlineModeLabel, gbc);
-		
+		panel_west.add(label_mode, gbc);
+		gbc.insets = new Insets(10, 0, 3, 0);
+		panel_west.add(label_underline, gbc);
+
 		// Label "Highway"
-        gbc.insets = new Insets(0,0,3,0);
+		gbc.insets = new Insets(0, 0, 3, 0);
 		gbc.gridy = 1;
-		westPanel.add(highwayLabel, gbc);
-		
+		panel_west.add(label_highway, gbc);
+
 		// ComboBox for Highwaytypes
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 2;
-		westPanel.add(highwayBox, gbc);
-		
+		panel_west.add(box_highways, gbc);
+
 		// Label "Length"
 		gbc.fill = GridBagConstraints.NONE;
 		JLabel lengthLabel = new JLabel("Length: ");
 		gbc.gridy = 3;
-		westPanel.add(lengthLabel, gbc);
-		
+		panel_west.add(lengthLabel, gbc);
+
 		// textfield for length
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 5;
-		westPanel.add(txtLength, gbc);
+		panel_west.add(text_length, gbc);
 
 		// Checkbox for length
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.gridy = 4;
-		westPanel.add(fixedLengthCheckBox, gbc);
-		
+		panel_west.add(checkBox_fixedLength, gbc);
+
 		// Label "Velocity"
 		gbc.gridy = 6;
-		westPanel.add(velocityLabel, gbc);
-		
+		panel_west.add(label_velocity, gbc);
+
 		// textfield for velocity
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 7;
-		westPanel.add(txtVelocity, gbc);
-		
+		panel_west.add(text_velocity, gbc);
+
 		gbc.gridy = 8;
-		westPanel.add(new JLabel(""), gbc);
-		
+		panel_west.add(new JLabel(""), gbc);
+
 		// Label "Algorithm"
-	    algoLabel.setFont(new Font("Default", Font.BOLD, 14));
-	    gbc.fill = GridBagConstraints.NONE;
+		label_algorithm.setFont(new Font("Default", Font.BOLD, 14));
+		gbc.fill = GridBagConstraints.NONE;
 		gbc.gridy = 9;
-		westPanel.add(algoLabel, gbc);
-		gbc.insets = new Insets(10,0,3,0);
-		westPanel.add(underlineAlgoLabel, gbc);
+		panel_west.add(label_algorithm, gbc);
+		gbc.insets = new Insets(10, 0, 3, 0);
+		panel_west.add(label_underline1, gbc);
 
 		// ComboBox for Examples
-		gbc.insets = new Insets(0,0,3,0);
+		gbc.insets = new Insets(0, 0, 3, 0);
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.gridy = 10;
-		westPanel.add(examplesBox, gbc);
-		
+		panel_west.add(box_examples, gbc);
+
 		// Run Button
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 11;
-		westPanel.add(startButton, gbc);
-		
+		panel_west.add(checkBox_run, gbc);
+
 		// Label "Step by Step"
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.gridy = 12;
-		westPanel.add(stepLabel, gbc);
-		
+		panel_west.add(label_step, gbc);
+
 		// Buttons Step by Step
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 13;
 		JPanel stepsPanel = new JPanel();
-		stepsPanel.add(prevButton);
-		stepsPanel.add(nextButton);
-		westPanel.add(stepsPanel, gbc);
-		
+		stepsPanel.add(button_prev);
+		stepsPanel.add(button_next);
+		panel_west.add(stepsPanel, gbc);
+
 		gbc.gridy = 14;
-		westPanel.add(new JLabel(""), gbc);
-		
+		panel_west.add(new JLabel(""), gbc);
+
 		// Label "Show"
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.gridy = 15;
-		showLabel.setFont(new Font("Default", Font.BOLD, 14));
-        gbc.anchor = GridBagConstraints.LINE_START;
-		westPanel.add(showLabel, gbc);
-		gbc.insets = new Insets(10,0,3,0);
-		westPanel.add(underlineShowLabel, gbc);
-		
-		// checkboxes
-		gbc.insets = new Insets(0,0,3,0);
+		label_show.setFont(new Font("Default", Font.BOLD, 14));
+		gbc.anchor = GridBagConstraints.LINE_START;
+		panel_west.add(label_show, gbc);
+		gbc.insets = new Insets(10, 0, 3, 0);
+		panel_west.add(label_underline2, gbc);
+
+		// Checkbox
+		gbc.insets = new Insets(0, 0, 3, 0);
 		gbc.gridy = 16;
-		westPanel.add(showCustomers, gbc);
+		panel_west.add(checkBox_showCustomers, gbc);
 		gbc.gridy = 17;
-		westPanel.add(showFacility, gbc);
+		panel_west.add(checkBox_showFacility, gbc);
 		gbc.gridy = 18;
-		westPanel.add(showHighway, gbc);
+		panel_west.add(checkBox_showHighway, gbc);
 		gbc.gridy = 19;
-		westPanel.add(showBalls, gbc);
-		
-		screenPanel.setBackground(Color.WHITE);
-		zoomInButton.setIcon(zoomInIcon);
-		zoomInButton.setPreferredSize(new Dimension(26,26));
-		screenPanel.add(zoomInButton);
-		zoomOutButton.setIcon(zoomOutIcon);
-		zoomOutButton.setPreferredSize(new Dimension(26,26));
-		screenPanel.add(zoomOutButton);
-		clearButton.setIcon(trashIcon);
-		clearButton.setPreferredSize(new Dimension(26,26));
-		screenPanel.add(clearButton);
-		eastPanel.setOpaque(false);
-		eastPanel.setLayout(new BorderLayout());
-		eastPanel.setBackground(Color.WHITE);
-		eastPanel.add(screenPanel, BorderLayout.NORTH);
-//		screenPanel.add(eastPanel, BorderLayout.EAST);
-//		screenPanel.add(westPanel, BorderLayout.WEST);
-		
-		tab_algorithm.setLayout(new BorderLayout());
-		tab_algorithm.setBackground(Color.WHITE);
-		tab_algorithm.add(westPanel, BorderLayout.WEST);
-		tab_algorithm.add(eastPanel, BorderLayout.EAST);
-		
-//		JTabbedPane jtp = new JTabbedPane();
-////        getContentPane().add(jtp);
-//        JPanel tab_animation = new JPanel();
-//        JLabel label2 = new JLabel();
-//        label2.setText("You are in area of Tab2");
-//        tab_animation.add(label2);
-//        jtp.addTab("Algorithm", tab_algorithm);
-//        jtp.addTab("Animation", tab_animation);
-//        
-//		add(jtp);
-		add(eastPanel, BorderLayout.EAST);
-		add(westPanel, BorderLayout.WEST);
-		
-	
+		panel_west.add(checkBox_showBalls, gbc);
+
+		panel_screen.setBackground(Color.WHITE);
+		button_zoomIn.setIcon(icon_zoomIn);
+		button_zoomIn.setPreferredSize(new Dimension(26, 26));
+		panel_screen.add(button_zoomIn);
+		button_zoomOut.setIcon(icon_zoomOut);
+		button_zoomOut.setPreferredSize(new Dimension(26, 26));
+		panel_screen.add(button_zoomOut);
+		button_clear.setIcon(icon_clear);
+		button_clear.setPreferredSize(new Dimension(26, 26));
+		panel_screen.add(button_clear);
+		panel_east.setOpaque(false);
+		panel_east.setLayout(new BorderLayout());
+		panel_east.setBackground(Color.WHITE);
+		panel_east.add(panel_screen, BorderLayout.NORTH);
+
+		add(panel_east, BorderLayout.EAST);
+		add(panel_west, BorderLayout.WEST);
+
 		registerListeners();
 	}
-	
-	public static ImageIcon createImageIcon(String path){
+
+	public static ImageIcon createImageIcon(String path) {
 		Image look = null;
-		try{
-			look = ImageIO.read(OCOHGUI.class.getClassLoader().getResource(path));
+		try {
+			look = ImageIO.read(OCOHGUI.class.getClassLoader()
+					.getResource(path));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -330,290 +270,394 @@ public class OCOHGUI extends JPanel {
 	public void registerListeners() {
 
 		// Register the listeners
-		txtLength.addActionListener(new ActionListener() {
-			
+		text_length.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				highwayLength = Integer.parseInt(txtLength.getText());
+
 			}
 		});
 		
-		startButton.addActionListener(new ActionListener(){
+		text_length.addKeyListener(new KeyAdapter() {
 			
+			public void keyTyped(KeyEvent e) {
+				char c = e.getKeyChar();
+			    if ( ((c < '0') || (c > '9')) && c != KeyEvent.VK_BACK_SPACE) {
+			    	e.consume();  // ignore event
+			    }    
+			}
+			
+			public void keyPressed(KeyEvent e) {
+
+				checkBox_run.setSelected(false);
+				keyTyped(e);
+				if(e.getKeyCode() == KeyEvent.VK_ENTER){
+			    	System.out.println("Enter");
+			    	try{
+						highwayLength = Integer.parseInt(text_length.getText());
+					}
+					catch(NumberFormatException ex){
+						JOptionPane.showMessageDialog(null, "Invalid Input!", "Error", JOptionPane.ERROR_MESSAGE);
+						highwayLength = 100;
+						text_length.setText("100");
+					}
+	                checkBox_run.setSelected(true);
+	            }
+				
+			}
+			
+		});
+		
+		text_velocity.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+			}
+		});
+		
+		text_velocity.addKeyListener(new KeyAdapter() {
+			public void keyTyped(KeyEvent e) {
+				char c = e.getKeyChar();
+			    if ( ((c < '0') || (c > '9')) && c != KeyEvent.VK_BACK_SPACE) {
+			    	e.consume();  // ignore event
+			    }    
+			}
+			
+			public void keyPressed(KeyEvent e) {
+
+				checkBox_run.setSelected(false);
+				keyTyped(e);
+				if(e.getKeyCode() == KeyEvent.VK_ENTER){
+			    	System.out.println("Enter");
+			    	try{
+						velocity = Integer.parseInt(text_velocity.getText());
+					}
+					catch(NumberFormatException ex){
+						JOptionPane.showMessageDialog(null, "Invalid Input!", "Error", JOptionPane.ERROR_MESSAGE);
+						velocity = 2;
+						text_velocity.setText("2");
+					}
+	                checkBox_run.setSelected(true);
+	            }
+				
+			}
+		});
+
+		checkBox_run.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				
-				
+
 			}
 		});
-		
-		clearButton.addActionListener(new ActionListener(){
+
+		button_clear.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				clear();
-			}});
-		
-		nextButton.addActionListener(new ActionListener(){
+			}
+		});
+
+		button_next.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if(stepCounter < algorithm.L.length-1){
-					stepCounter ++;
-				} 
-				repaint();
-				
-				
-				
-			}});
-		
-		prevButton.addActionListener(new ActionListener(){
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if(stepCounter > 0){
-					stepCounter --;
+				if (stepCounter < algorithm.L.length - 1) {
+					stepCounter++;
 				}
 				repaint();
-//				algorithm.a--; // erniedrigt center() radius
+
 			}
-				
 		});
-		
-		
+
+		button_prev.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (stepCounter > 0) {
+					stepCounter--;
+				}
+				repaint();
+				// algorithm.a--; // erniedrigt center() radius
+			}
+
+		});
+
 	}
 
 	public void clear() {
 		customersList.clear();
-//		algorithm.clear();
+		// algorithm.clear();
 		defaultButtonSettings();
 		stepCounter = 0;
 		repaint();
 	}
 
 	public void paintComponent(Graphics graph) {
-		
+
 		Graphics2D g = (Graphics2D) graph;
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g.setStroke(new BasicStroke(1));
 		super.paintComponent(graph);
 		this.g = g;
 
 		drawAllPoints();
-	
-		if (!customersList.isEmpty()){
+
+		if (!customersList.isEmpty()) {
 			runAlgorithm();
-			if(algorithm.L.length > 0 ){
-				
-//				algorithm.DL[stepCounter][stepCounter1].draw(g);
-//				algorithm.UR[stepCounter][stepCounter1].draw(g);
-//				
-////					draw smallest axis-aligned bounding box
-//				if (!algorithm.DL[stepCounter][stepCounter1].isEmpty()){
-//				g.setColor(Color.BLUE);
-//				g.drawRect((int)algorithm.XDL[stepCounter][stepCounter1][0].posX, (int)algorithm.XDL[stepCounter][stepCounter1][2].posY,
-//						(int)Math.abs(algorithm.XDL[stepCounter][stepCounter1][0].posX - algorithm.XDL[stepCounter][stepCounter1][1].posX), 
-//						(int)Math.abs(algorithm.XDL[stepCounter][stepCounter1][2].posY - algorithm.XDL[stepCounter][stepCounter1][3].posY));
-//				}
-//				if (!algorithm.UR[stepCounter][stepCounter1].isEmpty()){
-//				g.setColor(Color.RED);
-//				g.drawRect((int)algorithm.XUR[stepCounter][stepCounter1][0].posX, (int)algorithm.XUR[stepCounter][stepCounter1][2].posY,
-//						(int)Math.abs(algorithm.XUR[stepCounter][stepCounter1][0].posX - algorithm.XUR[stepCounter][stepCounter1][1].posX), 
-//						(int)Math.abs(algorithm.XUR[stepCounter][stepCounter1][2].posY - algorithm.XUR[stepCounter][stepCounter1][3].posY));
-//					}
-				
+			if (algorithm.L.length > 0) {
+
+				// algorithm.DL[stepCounter][stepCounter1].draw(g);
+				// algorithm.UR[stepCounter][stepCounter1].draw(g);
+				//
+				// // draw smallest axis-aligned bounding box
+				// if (!algorithm.DL[stepCounter][stepCounter1].isEmpty()){
+				// g.setColor(Color.BLUE);
+				// g.drawRect((int)algorithm.XDL[stepCounter][stepCounter1][0].posX,
+				// (int)algorithm.XDL[stepCounter][stepCounter1][2].posY,
+				// (int)Math.abs(algorithm.XDL[stepCounter][stepCounter1][0].posX
+				// - algorithm.XDL[stepCounter][stepCounter1][1].posX),
+				// (int)Math.abs(algorithm.XDL[stepCounter][stepCounter1][2].posY
+				// - algorithm.XDL[stepCounter][stepCounter1][3].posY));
+				// }
+				// if (!algorithm.UR[stepCounter][stepCounter1].isEmpty()){
+				// g.setColor(Color.RED);
+				// g.drawRect((int)algorithm.XUR[stepCounter][stepCounter1][0].posX,
+				// (int)algorithm.XUR[stepCounter][stepCounter1][2].posY,
+				// (int)Math.abs(algorithm.XUR[stepCounter][stepCounter1][0].posX
+				// - algorithm.XUR[stepCounter][stepCounter1][1].posX),
+				// (int)Math.abs(algorithm.XUR[stepCounter][stepCounter1][2].posY
+				// - algorithm.XUR[stepCounter][stepCounter1][3].posY));
+				// }
+
 				// draw centers
 				if (algorithm.c1[stepCounter].getSize() == 1) {
 					algorithm.c1[stepCounter].draw(g);
-				} else if (algorithm.c1[stepCounter].getSize() == 2){
-//					algorithm.c1[stepCounter].draw(g);
-					g.drawLine((int)algorithm.c1[stepCounter].points.get(0).getX(),(int) algorithm.c1[stepCounter].points.get(0).getY(), 
-							(int)algorithm.c1[stepCounter].points.get(1).getX(), (int)algorithm.c1[stepCounter].points.get(1).getY());
-				} else if (algorithm.c1[stepCounter].getSize() == 4){
-//					algorithm.c1[stepCounter].draw(g);
-					g.setColor(new Color(214,207,234,145));
-					g.fillRect((int)algorithm.c1[stepCounter].points.get(0).getX(), (int)algorithm.c1[stepCounter].points.get(0).getY(), 
-							Math.abs((int)algorithm.c1[stepCounter].points.get(2).getX()-(int)algorithm.c1[stepCounter].points.get(0).getX()), 
-							Math.abs((int)algorithm.c1[stepCounter].points.get(1).getY())-(int)algorithm.c1[stepCounter].points.get(0).getY());
+				} else if (algorithm.c1[stepCounter].getSize() == 2) {
+					// algorithm.c1[stepCounter].draw(g);
+					g.drawLine((int) algorithm.c1[stepCounter].points.get(0)
+							.getX(), (int) algorithm.c1[stepCounter].points
+							.get(0).getY(),
+							(int) algorithm.c1[stepCounter].points.get(1)
+									.getX(),
+							(int) algorithm.c1[stepCounter].points.get(1)
+									.getY());
+				} else if (algorithm.c1[stepCounter].getSize() == 4) {
+					// algorithm.c1[stepCounter].draw(g);
+					g.setColor(new Color(214, 207, 234, 145));
+					g.fillRect(
+							(int) algorithm.c1[stepCounter].points.get(0)
+									.getX(),
+							(int) algorithm.c1[stepCounter].points.get(0)
+									.getY(),
+							Math.abs((int) algorithm.c1[stepCounter].points
+									.get(2).getX()
+									- (int) algorithm.c1[stepCounter].points
+											.get(0).getX()),
+							Math.abs((int) algorithm.c1[stepCounter].points
+									.get(1).getY())
+									- (int) algorithm.c1[stepCounter].points
+											.get(0).getY());
 				}
 				if (algorithm.c2[stepCounter].getSize() == 1) {
 					algorithm.c2[stepCounter].draw(g);
-				} else if (algorithm.c2[stepCounter].getSize() == 2){
-//					algorithm.c2[stepCounter].draw(g);
-					g.drawLine((int)algorithm.c2[stepCounter].points.get(0).getX(),(int) algorithm.c2[stepCounter].points.get(0).getY(), 
-							(int)algorithm.c2[stepCounter].points.get(1).getX(), (int)algorithm.c2[stepCounter].points.get(1).getY());
-				} else if (algorithm.c2[stepCounter].getSize() == 4){
-//					algorithm.c2[stepCounter].draw(g);
-					g.setColor(new Color(214,207,234,145));
-					g.fillRect((int)algorithm.c2[stepCounter].points.get(0).getX(), (int)algorithm.c2[stepCounter].points.get(0).getY(), 
-							Math.abs((int)algorithm.c2[stepCounter].points.get(2).getX()-(int)algorithm.c2[stepCounter].points.get(0).getX()), 
-							Math.abs((int)algorithm.c2[stepCounter].points.get(1).getY())-(int)algorithm.c2[stepCounter].points.get(0).getY());
+				} else if (algorithm.c2[stepCounter].getSize() == 2) {
+					// algorithm.c2[stepCounter].draw(g);
+					g.drawLine((int) algorithm.c2[stepCounter].points.get(0)
+							.getX(), (int) algorithm.c2[stepCounter].points
+							.get(0).getY(),
+							(int) algorithm.c2[stepCounter].points.get(1)
+									.getX(),
+							(int) algorithm.c2[stepCounter].points.get(1)
+									.getY());
+				} else if (algorithm.c2[stepCounter].getSize() == 4) {
+					// algorithm.c2[stepCounter].draw(g);
+					g.setColor(new Color(214, 207, 234, 145));
+					g.fillRect(
+							(int) algorithm.c2[stepCounter].points.get(0)
+									.getX(),
+							(int) algorithm.c2[stepCounter].points.get(0)
+									.getY(),
+							Math.abs((int) algorithm.c2[stepCounter].points
+									.get(2).getX()
+									- (int) algorithm.c2[stepCounter].points
+											.get(0).getX()),
+							Math.abs((int) algorithm.c2[stepCounter].points
+									.get(1).getY())
+									- (int) algorithm.c2[stepCounter].points
+											.get(0).getY());
 				}
-				
+
 				algorithm.L[stepCounter].draw(g);
 				algorithm.R[stepCounter].draw(g);
-				
+
 				// draw smallest axis-aligned bounding box
 				g.setColor(Color.BLUE);
-				g.drawRect((int)algorithm.XL[stepCounter][0].posX, (int)algorithm.XL[stepCounter][2].posY,
-						(int)Math.abs(algorithm.XL[stepCounter][0].posX - algorithm.XL[stepCounter][1].posX), 
-						(int)Math.abs(algorithm.XL[stepCounter][2].posY - algorithm.XL[stepCounter][3].posY));
+				g.drawRect(
+						(int) algorithm.XL[stepCounter][0].posX,
+						(int) algorithm.XL[stepCounter][2].posY,
+						(int) Math.abs(algorithm.XL[stepCounter][0].posX
+								- algorithm.XL[stepCounter][1].posX),
+						(int) Math.abs(algorithm.XL[stepCounter][2].posY
+								- algorithm.XL[stepCounter][3].posY));
 				g.setColor(Color.RED);
-				g.drawRect((int)algorithm.XR[stepCounter][0].posX, (int)algorithm.XR[stepCounter][2].posY,
-						(int)Math.abs(algorithm.XR[stepCounter][0].posX - algorithm.XR[stepCounter][1].posX), 
-						(int)Math.abs(algorithm.XR[stepCounter][2].posY - algorithm.XR[stepCounter][3].posY));
+				g.drawRect(
+						(int) algorithm.XR[stepCounter][0].posX,
+						(int) algorithm.XR[stepCounter][2].posY,
+						(int) Math.abs(algorithm.XR[stepCounter][0].posX
+								- algorithm.XR[stepCounter][1].posX),
+						(int) Math.abs(algorithm.XR[stepCounter][2].posY
+								- algorithm.XR[stepCounter][3].posY));
 
-//				algorithm.maxDist1[stepCounter].setColor(Color.CYAN);
-//				algorithm.maxDist2[stepCounter].setColor(Color.MAGENTA);
-//				algorithm.minDist1[stepCounter].setColor(Color.CYAN);
-//				algorithm.minDist2[stepCounter].setColor(Color.MAGENTA);
-//				algorithm.maxDist1[stepCounter].draw(g);
-//				algorithm.maxDist2[stepCounter].draw(g);
-//				algorithm.minDist1[stepCounter].draw(g);
-//				algorithm.minDist2[stepCounter].draw(g);
-					
-				//draw turnpike
+				// algorithm.maxDist1[stepCounter].setColor(Color.CYAN);
+				// algorithm.maxDist2[stepCounter].setColor(Color.MAGENTA);
+				// algorithm.minDist1[stepCounter].setColor(Color.CYAN);
+				// algorithm.minDist2[stepCounter].setColor(Color.MAGENTA);
+				// algorithm.maxDist1[stepCounter].draw(g);
+				// algorithm.maxDist2[stepCounter].draw(g);
+				// algorithm.minDist1[stepCounter].draw(g);
+				// algorithm.minDist2[stepCounter].draw(g);
+
+				// draw turnpike
 				g.setStroke(new BasicStroke(2));
 				g.setColor(Color.BLACK);
-				g.drawLine((int)algorithm.facilityPointsLR[stepCounter].posX, (int)algorithm.facilityPointsLR[stepCounter].posY,
-						(int)algorithm.turnpikePointsLR[stepCounter].posX, (int)algorithm.turnpikePointsLR[stepCounter].posY);
+				g.drawLine((int) algorithm.facilityPointsLR[stepCounter].posX,
+						(int) algorithm.facilityPointsLR[stepCounter].posY,
+						(int) algorithm.turnpikePointsLR[stepCounter].posX,
+						(int) algorithm.turnpikePointsLR[stepCounter].posY);
 				algorithm.facilityPointsLR[stepCounter].setColor(Color.GREEN);
 				algorithm.facilityPointsLR[stepCounter].draw(g);
 				algorithm.turnpikePointsLR[stepCounter].setColor(Color.ORANGE);
 				algorithm.turnpikePointsLR[stepCounter].draw(g);
-								
+
 			}
 		}
-		
-	
+
 	}
 
-	
 	public void drawAllPoints() {
-		
-		if (showCustomers.isSelected()){
+
+		if (checkBox_showCustomers.isSelected()) {
 			customersList.draw(g);
 			// Draw a rectangle around the point which is selected
 			if (dragged != null) {
 				dragged.drawHighlight(g);
 			}
-			if(pointed != null){
+			if (pointed != null) {
 				pointed.drawBoundings(g);
 			}
 		}
 		repaint();
 	}
 
+	public boolean pointAlreadyExists(Point p) {
 
-	public boolean pointAlreadyExists(Point p){
-	
-		if(customersList.contains(p)){
+		if (customersList.contains(p)) {
 			return true;
 		}
 		return false;
 	}
-	
-	public void moveMouse(Point p){
+
+	public void moveMouse(Point p) {
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		pointed = null;
-		if(pointAlreadyExists(p)){
+		if (pointAlreadyExists(p)) {
 			pointed = searchPoint(p);
 			this.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		}
 		repaint();
-		
+
 	}
-	
-	public void rightMouseClick(Point p){
-		if(pointAlreadyExists(p)){
-			
+
+	public void rightMouseClick(Point p) {
+		if (pointAlreadyExists(p)) {
+
 			deletePoint(p);
 		}
 
 		pointed = null;
-//		algorithm.clear();
+		// algorithm.clear();
 		buttonsCheck();
-//		runAlgorithm();
+		// runAlgorithm();
 		repaint();
 	}
-	
-	public void buttonsCheck(){
-		
-	
+
+	public void buttonsCheck() {
+
 	}
-	
-	public void leftMouseClick(Point p){
-		
-		if(!pointAlreadyExists(p) && showCustomers.isSelected()){
+
+	public void leftMouseClick(Point p) {
+
+		if (!pointAlreadyExists(p) && checkBox_showCustomers.isSelected()) {
 			addPoint(p);
-		}else{
-			
-			if(customersList.contains(p) && showCustomers.isSelected()){
+		} else {
+
+			if (customersList.contains(p) && checkBox_showCustomers.isSelected()) {
 				dragged = customersList.search(p);
 			}
-			 // Highlight the clicked point
+			// Highlight the clicked point
 			repaint();
-		}		
+		}
 
 		buttonsCheck();
-//		runAlgorithm();
+		// runAlgorithm();
 	}
-	
-	public Point searchPoint(Point p){
-		
-	
+
+	public Point searchPoint(Point p) {
+
 		return customersList.search(p);
-		
-		
+
 	}
-	
-	public void dragged(Point p){
-		
-		if(dragged != null && !collisionExists(p)){
+
+	public void dragged(Point p) {
+
+		if (dragged != null && !collisionExists(p)) {
 			dragged.setPosX(p.getX());
 			dragged.setPosY(p.getY());
-			
+
 		}
 		runAlgorithm();
 		repaint();
 	}
-	
-	public void deletePoint(Point p){
-		
+
+	public void deletePoint(Point p) {
+
 		customersList.remove(p);
-			
+
 	}
-	
-	public boolean collisionExists(Point p){
-		if(!(customersList.collisionExists(p))){
+
+	public boolean collisionExists(Point p) {
+		if (!(customersList.collisionExists(p))) {
 			return false;
 		}
 		return true;
 	}
-	
-	public void addPoint(Point p){
-				
-		if(!collisionExists(p)){
-			
+
+	public void addPoint(Point p) {
+
+		if (!collisionExists(p)) {
+
 			System.out.println(p.toString());
 			customersList.addPoint(p);
 			runAlgorithm();
-					
+
 		}
 		repaint();
 		moveMouse(p);
 	}
-	
-	public int[] getScreenCoordinates(){
-		
-		int[] coordinates = {westPanel.getWidth(), panel.getWidth(), screenPanel.getWidth(), screenPanel.getHeight()};
-		
+
+	public int[] getScreenCoordinates() {
+
+		int[] coordinates = { panel_west.getWidth(), panel.getWidth(),
+				panel_screen.getWidth(), panel_screen.getHeight() };
+
 		return coordinates;
-		
+
 	}
-	
+
 	private class Listener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -621,12 +665,13 @@ public class OCOHGUI extends JPanel {
 		}
 	}
 
-	public void runAlgorithm(){
-		
-		if(startButton.isSelected()){
+	public void runAlgorithm() {
+
+		if (checkBox_run.isSelected()) {
 			try{
-				highwayLength = Integer.parseInt(txtLength.getText());
-				velocity = Integer.parseInt(txtVelocity.getText());
+				highwayLength = Integer.parseInt(text_length.getText());
+				velocity = Integer.parseInt(text_velocity.getText());
+				algorithm.runAlgorithm(customersList, highwayLength, velocity);
 				repaint();
 			}
 			catch(NumberFormatException e){
@@ -635,8 +680,8 @@ public class OCOHGUI extends JPanel {
 					    "Error",
 					    JOptionPane.ERROR_MESSAGE);
 			}
-			algorithm.runAlgorithm(customersList, highwayLength, velocity);
-		
+			
+
 		}
 	}
 }

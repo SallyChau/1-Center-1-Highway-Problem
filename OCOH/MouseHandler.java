@@ -4,6 +4,8 @@ package OCOH;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 public class MouseHandler extends MouseAdapter{
@@ -24,19 +26,21 @@ public class MouseHandler extends MouseAdapter{
 		return mouseHandler;
 	}
 	
+	public static MouseHandler getMouse(){
+		return mouseHandler;
+	}
 	@Override
 	public void mousePressed(MouseEvent e) {
 		
 		Point p = new Point(e.getX(), e.getY());
 		
+		System.out.println(p.toString());
 		if(mouseInScreen(e)){
 			
 			if(SwingUtilities.isRightMouseButton(e)){
 				panel.rightMouseClick(p);
-				
 			}else if(SwingUtilities.isLeftMouseButton(e)){
-				panel.leftMouseClick(p);
-				
+				panel.leftMouseClick(p);				
 			}
 			
 		}
