@@ -3,50 +3,33 @@ package OCOH;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Hashtable;
 import java.util.List;
 
 public class OCOHAlgorithm {
 	
-		Point[] minDist1;
-		Point[] minDist2;
-		Point[] maxDist1;
-		Point[] maxDist2;
+		List<Point> minDist1;
+		List<Point> minDist2;
+		List<Point> maxDist1;
+		List<Point> maxDist2;
 		
 		Point currentFacility = new Point(); // turnpike endpoint CHECK WHETHER CURRENT POINTS ARE CORRECT
 		Point currentTurnpikeStart = new Point();
 		double currentRadius = 0;
 		
-		List<PointList> set1;
-		List<PointList> set2;
-		List<PointList> UR;
-		List<PointList> DL;
+		List<PointList> set1; // doesnt use turnpike, f 
+		List<PointList> set2; // uses turnpike, t
+		List<Point[]> extremePoints1;
+		List<Point[]> extremePoints2;
+		List<Point> facilityPoints;
+		List<Point> turnpikePoints;
+		List<Double> partitionRadius;
 		
-		Hashtable<PointList, PointList> setPairs = new Hashtable<PointList, PointList>();
-	
-	// case a) and b)
-		PointList[] L;
-		PointList[] R;
+		List<PointList> c1;
+		List<PointList> c2;
 		
-		Point[] facilityPointsLR;
-		Point[] turnpikePointsLR;
-		double[] partitionRadiusLR;
-		
-		// case c)
-		
-		// Extreme Points of L and R
-		Point[][] XL;
-		Point[][] XR;
-		
-		// Extreme Points of UR_i,j and DL_i,j
-		Point[][][] XUR;
-		Point[][][] XDL;
-		
-		PointList[] c1;
-		PointList[] c2;
-		double prevY = 0;
+		private double prevY = 0;
 		double eps1, eps2, x = 0;
-		double maxDist;
+		private double maxDist;
 		
 		int highwayLength;
 		int velocity;
@@ -60,83 +43,64 @@ public class OCOHAlgorithm {
 			maxDist = customers.maxDist();
 			
 			// for drawing purposes only
-			facilityPointsLR = new Point[customers.getSize()-1];
-			turnpikePointsLR = new Point[customers.getSize()-1];
-			partitionRadiusLR = new double[customers.getSize()-1];
-			maxDist1 = new Point[customers.getSize()-1];
-			maxDist2 = new Point[customers.getSize()-1];
-			minDist1 = new Point[customers.getSize()-1];
-			minDist2 = new Point[customers.getSize()-1];
-			c1 = new PointList[customers.getSize()-1];
-			c2 = new PointList[customers.getSize()-1];
-			
-			// all partitions
-			L = new PointList[customers.getSize()-1];
-			R = new PointList[customers.getSize()-1];
-			
+			facilityPoints = new ArrayList<Point>();
+			turnpikePoints = new ArrayList<Point>();
+			partitionRadius = new ArrayList<Double>();
 			
 			set1 = new ArrayList<PointList>();
 			set2 = new ArrayList<PointList>();
-			UR = new ArrayList<PointList>();
-			DL = new ArrayList<PointList>();
+			extremePoints1 = new ArrayList<Point[]>();
+			extremePoints2 = new ArrayList<Point[]>();
+			c1 = new ArrayList<PointList>();
+			c2 = new ArrayList<PointList>();
 			
 			getPartition(customers);
 			
-			                                                                                                                                                                                                                                                               
-			// Extreme Points of L and R to find smallest axis-aligned bounding box
-			XL = new Point[customers.getSize()-1][4]; // Xmin, Xmax, Ymin, Ymax
-			XR = new Point[customers.getSize()-1][4];
-			// Extreme Points of UR_i,j and DL_i,j
-			XUR = new Point[customers.getSize()][customers.getSize()][4];
-			XDL = new Point[customers.getSize()][customers.getSize()][4];
-			// Find extreme points for all sets L_i, R_i for smallest axis-aligned rects
-			for (int i = 0; i < customers.getSize()-1; i++){
-				XL[i] = L[i].getExtremePoints();
-				XR[i] = R[i].getExtremePoints();
-			}
-//			for (int i = 0; i < customers.getSize(); i++){
-//				for (int j = 0; j < customers.getSize(); j++){
-//					if (!UR[i][j].isEmpty()){
-//						XUR[i][j] = UR[i][j].getExtremePoints();
-//					}
-//					if (!DL[i][j].isEmpty()){
-//						XDL[i][j] = DL[i][j].getExtremePoints();
-//					}
-//				}
-//			}
+			maxDist1 = new ArrayList<Point>();
+			maxDist2 = new ArrayList<Point>();
+			minDist1 = new ArrayList<Point>();
+			minDist2 = new ArrayList<Point>();
 			
-			// solve basic problem for all pairs (L,R)
-			for (int i = 0; i < L.length; i++){
+			// compute extreme points
+			for (PointList p : set1){
+				extremePoints1.add(p.getExtremePoints());
+			}
+			for (PointList p : set2){
+				extremePoints2.add(p.getExtremePoints());
+			}
+			
+			// solve basic problem for all partitions {W,H}
+			for (int i = 0; i < set1.size(); i++){
 
-				eps1 = Math.max(0, L[i].delta() + highwayLength/velocity - R[i].delta());
-				eps2 = Math.max(0, R[i].delta() - L[i].delta() - highwayLength/velocity);
+				eps1 = Math.max(0, set1.get(i).delta() + highwayLength/velocity - set2.get(i).delta());
+				eps2 = Math.max(0, set2.get(i).delta() - set1.get(i).delta() - highwayLength/velocity);
 
-				solveBP(L[i], R[i]); 
-				facilityPointsLR[i] = currentFacility;
-				turnpikePointsLR[i] = currentTurnpikeStart;
-				partitionRadiusLR[i] = currentRadius;
+				solveBP(set1.get(i), set2.get(i)); 
+				facilityPoints.add(currentFacility);
+				turnpikePoints.add(currentTurnpikeStart);
+				partitionRadius.add(currentRadius);
 				
 				// for drawing purposes
-				c1[i] = center(L[i], L[i].delta() + eps2 + x);
-				c2[i] = center(R[i], R[i].delta() + eps1 + x);
-				if (c1[i].objectContains(c1[i].objectMinDistPoints(c2[i])[0])){
-					minDist1[i] = c1[i].objectMinDistPoints(c2[i])[0]; 
-					minDist2[i] = c1[i].objectMinDistPoints(c2[i])[1];
+				c1.add(center(set1.get(i), set1.get(i).delta() + eps2 + x));
+				c2.add(center(set2.get(i), set2.get(i).delta() + eps1 + x));
+				if (c1.get(i).objectContains(c1.get(i).objectMinDistPoints(c2.get(i))[0])){
+					minDist1.add(c1.get(i).objectMinDistPoints(c2.get(i))[0]); 
+					minDist2.add(c1.get(i).objectMinDistPoints(c2.get(i))[1]);
 				} else {
-					minDist1[i] = c1[i].objectMinDistPoints(c2[i])[1]; 
-					minDist2[i] = c1[i].objectMinDistPoints(c2[i])[0];
+					minDist1.add(c1.get(i).objectMinDistPoints(c2.get(i))[1]); 
+					minDist2.add(c1.get(i).objectMinDistPoints(c2.get(i))[0]);
 				}
-				maxDist1[i] = c1[i].objectMaxDistPoints(c2[i])[0]; 
-				maxDist2[i] = c1[i].objectMaxDistPoints(c2[i])[1];
+				maxDist1.add(c1.get(i).objectMaxDistPoints(c2.get(i))[0]); 
+				maxDist2.add(c1.get(i).objectMaxDistPoints(c2.get(i))[1]);
 				
 //				System.out.println("Facility: " + facilityPointsLR[i].toString() + " T: " + turnpikePointsLR[i]);
 //				System.out.println("Distance: " + Math.sqrt(facilityPointsLR[i].distanceSquaredTo(turnpikePointsLR[i])));
 //				System.out.println("Radius: " + partitionRadiusLR[i]);
 			}	
 			
-//			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
-//			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
-//			System.out.println("Radius: " + currentRadius);
+			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
+			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
+			System.out.println("Radius: " + currentRadius);
 			
 		}
 	}
@@ -297,6 +261,8 @@ public class OCOHAlgorithm {
 		
 		extrema = T.getExtremePoints();
 		
+		if (extrema[0] == null) return centers; // centers is empty
+		
 		if (radius < T.delta()) return centers; // centers is empty
 		
 		// find X coordinates
@@ -388,7 +354,7 @@ public class OCOHAlgorithm {
 					}
 //					System.out.println("u"+i+""+j+""+UR[i][j].toString());	
 //					System.out.println("d"+i+""+j+""+DL[i][j].toString());
-					if (!contains(set1, UR[i][j])){
+					if (!contains(set1, UR[i][j]) && UR[i][j].getSize() > 0){
 						
 						set1.add(UR[i][j]);
 						set2.add(DL[i][j]);
@@ -410,6 +376,8 @@ public class OCOHAlgorithm {
 	
 	private void splitByLine(PointList S){
 
+		PointList[] L = new PointList[S.getSize()-1];
+		PointList[] R = new PointList[S.getSize()-1];
 		// case a) and b)
 
 		// initialize all point lists

@@ -18,24 +18,17 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.text.NumberFormat;
-import java.util.Collection;
-import java.util.Set;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import anja.swinggui.JRepeatButton;
-import appsStandalone.BeachCombers.src.de.marcmigge.beachcombers.Algorithm;
 
 public class OCOHGUI extends JPanel {
 
@@ -422,145 +415,130 @@ public class OCOHGUI extends JPanel {
 
 		if (!customersList.isEmpty()) {
 			runAlgorithm();
-			if (algorithm.L.length > 0) {
-				
-				
-				algorithm.set1.get(stepCounter).draw(g);
-				algorithm.set2.get(stepCounter).draw(g);
-//				algorithm.UR.get(stepCounter).draw(g);
-//				System.out.println("UR: "+stepCounter+" "+algorithm.UR.get(stepCounter).toString());
-//				algorithm.DL.get(stepCounter).draw(g);
-//				System.out.println("DL: "+stepCounter+" "+algorithm.DL.get(stepCounter).toString());
-				// algorithm.DL[stepCounter][stepCounter1].draw(g);
-				// algorithm.UR[stepCounter][stepCounter1].draw(g);
-				//
-				// // draw smallest axis-aligned bounding box
-				// if (!algorithm.DL[stepCounter][stepCounter1].isEmpty()){
-				// g.setColor(Color.BLUE);
-				// g.drawRect((int)algorithm.XDL[stepCounter][stepCounter1][0].posX,
-				// (int)algorithm.XDL[stepCounter][stepCounter1][2].posY,
-				// (int)Math.abs(algorithm.XDL[stepCounter][stepCounter1][0].posX
-				// - algorithm.XDL[stepCounter][stepCounter1][1].posX),
-				// (int)Math.abs(algorithm.XDL[stepCounter][stepCounter1][2].posY
-				// - algorithm.XDL[stepCounter][stepCounter1][3].posY));
-				// }
-				// if (!algorithm.UR[stepCounter][stepCounter1].isEmpty()){
-				// g.setColor(Color.RED);
-				// g.drawRect((int)algorithm.XUR[stepCounter][stepCounter1][0].posX,
-				// (int)algorithm.XUR[stepCounter][stepCounter1][2].posY,
-				// (int)Math.abs(algorithm.XUR[stepCounter][stepCounter1][0].posX
-				// - algorithm.XUR[stepCounter][stepCounter1][1].posX),
-				// (int)Math.abs(algorithm.XUR[stepCounter][stepCounter1][2].posY
-				// - algorithm.XUR[stepCounter][stepCounter1][3].posY));
-				// }
-
-				// draw centers
-//				if (algorithm.c1[stepCounter].getSize() == 1) {
-//					algorithm.c1[stepCounter].draw(g);
-//				} else if (algorithm.c1[stepCounter].getSize() == 2) {
-//					// algorithm.c1[stepCounter].draw(g);
-//					g.drawLine((int) algorithm.c1[stepCounter].points.get(0)
-//							.getX(), (int) algorithm.c1[stepCounter].points
-//							.get(0).getY(),
-//							(int) algorithm.c1[stepCounter].points.get(1)
-//									.getX(),
-//							(int) algorithm.c1[stepCounter].points.get(1)
-//									.getY());
-//				} else if (algorithm.c1[stepCounter].getSize() == 4) {
-//					// algorithm.c1[stepCounter].draw(g);
-//					g.setColor(new Color(214, 207, 234, 145));
-//					g.fillRect(
-//							(int) algorithm.c1[stepCounter].points.get(0)
-//									.getX(),
-//							(int) algorithm.c1[stepCounter].points.get(0)
-//									.getY(),
-//							Math.abs((int) algorithm.c1[stepCounter].points
-//									.get(2).getX()
-//									- (int) algorithm.c1[stepCounter].points
-//											.get(0).getX()),
-//							Math.abs((int) algorithm.c1[stepCounter].points
-//									.get(1).getY())
-//									- (int) algorithm.c1[stepCounter].points
-//											.get(0).getY());
-//				}
-//				if (algorithm.c2[stepCounter].getSize() == 1) {
-//					algorithm.c2[stepCounter].draw(g);
-//				} else if (algorithm.c2[stepCounter].getSize() == 2) {
-//					// algorithm.c2[stepCounter].draw(g);
-//					g.drawLine((int) algorithm.c2[stepCounter].points.get(0)
-//							.getX(), (int) algorithm.c2[stepCounter].points
-//							.get(0).getY(),
-//							(int) algorithm.c2[stepCounter].points.get(1)
-//									.getX(),
-//							(int) algorithm.c2[stepCounter].points.get(1)
-//									.getY());
-//				} else if (algorithm.c2[stepCounter].getSize() == 4) {
-//					// algorithm.c2[stepCounter].draw(g);
-//					g.setColor(new Color(214, 207, 234, 145));
-//					g.fillRect(
-//							(int) algorithm.c2[stepCounter].points.get(0)
-//									.getX(),
-//							(int) algorithm.c2[stepCounter].points.get(0)
-//									.getY(),
-//							Math.abs((int) algorithm.c2[stepCounter].points
-//									.get(2).getX()
-//									- (int) algorithm.c2[stepCounter].points
-//											.get(0).getX()),
-//							Math.abs((int) algorithm.c2[stepCounter].points
-//									.get(1).getY())
-//									- (int) algorithm.c2[stepCounter].points
-//											.get(0).getY());
-//				}
-//
-//				algorithm.L[stepCounter].draw(g);
-//				algorithm.R[stepCounter].draw(g);
-//
-//				// draw smallest axis-aligned bounding box
-//				g.setColor(Color.BLUE);
-//				g.drawRect(
-//						(int) algorithm.XL[stepCounter][0].posX,
-//						(int) algorithm.XL[stepCounter][2].posY,
-//						(int) Math.abs(algorithm.XL[stepCounter][0].posX
-//								- algorithm.XL[stepCounter][1].posX),
-//						(int) Math.abs(algorithm.XL[stepCounter][2].posY
-//								- algorithm.XL[stepCounter][3].posY));
-//				g.setColor(Color.RED);
-//				g.drawRect(
-//						(int) algorithm.XR[stepCounter][0].posX,
-//						(int) algorithm.XR[stepCounter][2].posY,
-//						(int) Math.abs(algorithm.XR[stepCounter][0].posX
-//								- algorithm.XR[stepCounter][1].posX),
-//						(int) Math.abs(algorithm.XR[stepCounter][2].posY
-//								- algorithm.XR[stepCounter][3].posY));
-
-				// algorithm.maxDist1[stepCounter].setColor(Color.CYAN);
-				// algorithm.maxDist2[stepCounter].setColor(Color.MAGENTA);
-				// algorithm.minDist1[stepCounter].setColor(Color.CYAN);
-				// algorithm.minDist2[stepCounter].setColor(Color.MAGENTA);
-				// algorithm.maxDist1[stepCounter].draw(g);
-				// algorithm.maxDist2[stepCounter].draw(g);
-				// algorithm.minDist1[stepCounter].draw(g);
-				// algorithm.minDist2[stepCounter].draw(g);
-
-				// draw turnpike
-//				g.setStroke(new BasicStroke(2));
-//				g.setColor(Color.BLACK);
-//				g.drawLine((int) algorithm.facilityPointsLR[stepCounter].posX,
-//						(int) algorithm.facilityPointsLR[stepCounter].posY,
-//						(int) algorithm.turnpikePointsLR[stepCounter].posX,
-//						(int) algorithm.turnpikePointsLR[stepCounter].posY);
-//				algorithm.facilityPointsLR[stepCounter].setColor(Color.GREEN);
-//				algorithm.facilityPointsLR[stepCounter].draw(g);
-//				algorithm.turnpikePointsLR[stepCounter].setColor(Color.ORANGE);
-//				algorithm.turnpikePointsLR[stepCounter].draw(g);
-
-					
-				
+			if (algorithm.set1.size() > 0) {
+				drawCenters();
+				drawPartition();
+				drawSmallestAxisAlignedRect();
+				drawTurnpikePos();
 			}
 		}
-
+	}
+	
+	public void drawPartition(){
+		// draw Partitions
+		algorithm.set1.get(stepCounter).draw(g);
+		algorithm.set2.get(stepCounter).draw(g);
+	}
+	
+	public void drawTurnpikePos(){
+		// draw turnpike
+		((Graphics2D) g).setStroke(new BasicStroke(2));
+		g.setColor(Color.BLACK);
+		g.drawLine((int) algorithm.facilityPoints.get(stepCounter).posX,
+				(int) algorithm.facilityPoints.get(stepCounter).posY,
+				(int) algorithm.turnpikePoints.get(stepCounter).posX,
+				(int) algorithm.turnpikePoints.get(stepCounter).posY);
+		algorithm.facilityPoints.get(stepCounter).setColor(Color.GREEN);
+		algorithm.facilityPoints.get(stepCounter).draw(g);
+		algorithm.turnpikePoints.get(stepCounter).setColor(Color.ORANGE);
+		algorithm.turnpikePoints.get(stepCounter).draw(g);
+	}
+	
+	public void drawDistPoints(){
+		algorithm.maxDist1.get(stepCounter).setColor(Color.CYAN);
+		algorithm.maxDist2.get(stepCounter).setColor(Color.MAGENTA);
+		algorithm.minDist1.get(stepCounter).setColor(Color.CYAN);
+		algorithm.minDist2.get(stepCounter).setColor(Color.MAGENTA);
+		algorithm.maxDist1.get(stepCounter).draw(g);
+		algorithm.maxDist2.get(stepCounter).draw(g);
+		algorithm.minDist1.get(stepCounter).draw(g);
+		algorithm.minDist2.get(stepCounter).draw(g);
 	}
 
+	public void drawSmallestAxisAlignedRect(){
+		// draw smallest axis aligned rects
+//		if (algorithm.extremePoints1.get(stepCounter)[0] != null){
+			g.setColor(Color.BLUE);
+			g.drawRect(
+					(int) algorithm.extremePoints1.get(stepCounter)[0].posX,
+					(int) algorithm.extremePoints1.get(stepCounter)[2].posY,
+					(int) Math.abs(algorithm.extremePoints1.get(stepCounter)[0].posX
+							- algorithm.extremePoints1.get(stepCounter)[1].posX),
+					(int) Math.abs(algorithm.extremePoints1.get(stepCounter)[2].posY
+							- algorithm.extremePoints1.get(stepCounter)[3].posY));
+//		}
+//		if (algorithm.extremePoints2.get(stepCounter)[0] != null){
+			g.setColor(Color.RED);
+			g.drawRect(
+					(int) algorithm.extremePoints2.get(stepCounter)[0].posX,
+					(int) algorithm.extremePoints2.get(stepCounter)[2].posY,
+					(int) Math.abs(algorithm.extremePoints2.get(stepCounter)[0].posX
+							- algorithm.extremePoints2.get(stepCounter)[1].posX),
+					(int) Math.abs(algorithm.extremePoints2.get(stepCounter)[2].posY
+							- algorithm.extremePoints2.get(stepCounter)[3].posY));
+//		}
+	}
+	
+	public void drawCenters(){
+		// draw centers
+		if (algorithm.c1.get(stepCounter).getSize() == 1) {
+			algorithm.c1.get(stepCounter).draw(g);
+		} else if (algorithm.c1.get(stepCounter).getSize() == 2) {
+			// algorithm.c1[stepCounter].draw(g);
+			g.drawLine((int) algorithm.c1.get(stepCounter).points.get(0)
+					.getX(), (int) algorithm.c1.get(stepCounter).points
+					.get(0).getY(),
+					(int) algorithm.c1.get(stepCounter).points.get(1)
+							.getX(),
+					(int) algorithm.c1.get(stepCounter).points.get(1)
+							.getY());
+		} else if (algorithm.c1.get(stepCounter).getSize() == 4) {
+			// algorithm.c1[stepCounter].draw(g);
+			g.setColor(new Color(214, 207, 234, 145));
+			g.fillRect(
+					(int) algorithm.c1.get(stepCounter).points.get(0)
+							.getX(),
+					(int) algorithm.c1.get(stepCounter).points.get(0)
+							.getY(),
+					Math.abs((int) algorithm.c1.get(stepCounter).points
+							.get(2).getX()
+							- (int) algorithm.c1.get(stepCounter).points
+									.get(0).getX()),
+					Math.abs((int) algorithm.c1.get(stepCounter).points
+							.get(1).getY())
+							- (int) algorithm.c1.get(stepCounter).points
+									.get(0).getY());
+		}
+		if (algorithm.c2.get(stepCounter).getSize() == 1) {
+			algorithm.c2.get(stepCounter).draw(g);
+		} else if (algorithm.c2.get(stepCounter).getSize() == 2) {
+			// algorithm.c2[stepCounter].draw(g);
+			g.drawLine((int) algorithm.c2.get(stepCounter).points.get(0)
+					.getX(), (int) algorithm.c2.get(stepCounter).points
+					.get(0).getY(),
+					(int) algorithm.c2.get(stepCounter).points.get(1)
+							.getX(),
+					(int) algorithm.c2.get(stepCounter).points.get(1)
+							.getY());
+		} else if (algorithm.c2.get(stepCounter).getSize() == 4) {
+			// algorithm.c2[stepCounter].draw(g);
+			g.setColor(new Color(214, 207, 234, 145));
+			g.fillRect(
+					(int) algorithm.c2.get(stepCounter).points.get(0)
+							.getX(),
+					(int) algorithm.c2.get(stepCounter).points.get(0)
+							.getY(),
+					Math.abs((int) algorithm.c2.get(stepCounter).points
+							.get(2).getX()
+							- (int) algorithm.c2.get(stepCounter).points
+									.get(0).getX()),
+					Math.abs((int) algorithm.c2.get(stepCounter).points
+							.get(1).getY())
+							- (int) algorithm.c2.get(stepCounter).points
+									.get(0).getY());
+		}
+	}
+	
 	public void drawAllPoints() {
 
 		if (checkBox_showCustomers.isSelected()) {

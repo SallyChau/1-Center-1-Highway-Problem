@@ -490,7 +490,7 @@ public class PointList {
 		//extremePoints contains the points with highest and lowest x and y coordinate of the PointList
 		
 		Point[] extremePoints = new Point[4];
-		
+		if (points.size() == 0) return extremePoints;
 		//extreme points in X direction
 		Collections.sort(points, Point.COMPARE_BY_XCoord);
 		extremePoints[0] = points.get(0); // smallest X coordinate
