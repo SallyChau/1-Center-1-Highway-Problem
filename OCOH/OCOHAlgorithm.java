@@ -3,10 +3,8 @@ package OCOH;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Hashtable;
 import java.util.List;
-import anja.geom.Point2;
-import anja.geom.Rectangle2;
-import anja.geom.Segment2;
 
 public class OCOHAlgorithm {
 	
@@ -19,6 +17,12 @@ public class OCOHAlgorithm {
 		Point currentTurnpikeStart = new Point();
 		double currentRadius = 0;
 		
+		List<PointList> set1;
+		List<PointList> set2;
+		List<PointList> UR;
+		List<PointList> DL;
+		
+		Hashtable<PointList, PointList> setPairs = new Hashtable<PointList, PointList>();
 	
 	// case a) and b)
 		PointList[] L;
@@ -29,8 +33,6 @@ public class OCOHAlgorithm {
 		double[] partitionRadiusLR;
 		
 		// case c)
-		PointList[][] UR;
-		PointList[][] DL;
 		
 		// Extreme Points of L and R
 		Point[][] XL;
@@ -71,11 +73,16 @@ public class OCOHAlgorithm {
 			// all partitions
 			L = new PointList[customers.getSize()-1];
 			R = new PointList[customers.getSize()-1];
-			UR = new PointList[customers.getSize()][customers.getSize()];
-			DL = new PointList[customers.getSize()][customers.getSize()];
-			splitByLine(customers);
-			splitByQuadrant(customers);
 			
+			
+			set1 = new ArrayList<PointList>();
+			set2 = new ArrayList<PointList>();
+			UR = new ArrayList<PointList>();
+			DL = new ArrayList<PointList>();
+			
+			getPartition(customers);
+			
+			                                                                                                                                                                                                                                                               
 			// Extreme Points of L and R to find smallest axis-aligned bounding box
 			XL = new Point[customers.getSize()-1][4]; // Xmin, Xmax, Ymin, Ymax
 			XR = new Point[customers.getSize()-1][4];
@@ -87,16 +94,16 @@ public class OCOHAlgorithm {
 				XL[i] = L[i].getExtremePoints();
 				XR[i] = R[i].getExtremePoints();
 			}
-			for (int i = 0; i < customers.getSize(); i++){
-				for (int j = 0; j < customers.getSize(); j++){
-					if (!UR[i][j].isEmpty()){
-						XUR[i][j] = UR[i][j].getExtremePoints();
-					}
-					if (!DL[i][j].isEmpty()){
-						XDL[i][j] = DL[i][j].getExtremePoints();
-					}
-				}
-			}
+//			for (int i = 0; i < customers.getSize(); i++){
+//				for (int j = 0; j < customers.getSize(); j++){
+//					if (!UR[i][j].isEmpty()){
+//						XUR[i][j] = UR[i][j].getExtremePoints();
+//					}
+//					if (!DL[i][j].isEmpty()){
+//						XDL[i][j] = DL[i][j].getExtremePoints();
+//					}
+//				}
+//			}
 			
 			// solve basic problem for all pairs (L,R)
 			for (int i = 0; i < L.length; i++){
@@ -127,9 +134,9 @@ public class OCOHAlgorithm {
 //				System.out.println("Radius: " + partitionRadiusLR[i]);
 			}	
 			
-			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
-			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
-			System.out.println("Radius: " + currentRadius);
+//			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
+//			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
+//			System.out.println("Radius: " + currentRadius);
 			
 		}
 	}
@@ -342,44 +349,66 @@ public class OCOHAlgorithm {
 	
 	}
 	
-	public void splitByQuadrant(PointList S){
-		
-		PointList Y = S;
+	public void getPartition(PointList customers){
+		splitByQuadrant(customers);
+		splitByLine(customers);
+	}
+	
+	private void splitByQuadrant(PointList S){
+
+	
+		PointList[][] UR = new PointList[S.getSize()][S.getSize()];
+		PointList[][] DL = new PointList[S.getSize()][S.getSize()];
+		PointList Yincr = S;
 		PointList X = S;
+		PointList Y = new PointList();
 		
-		Collections.sort(Y.points, Point.COMPARE_BY_YCoord); // q_i
 		Collections.sort(X.points, Point.COMPARE_BY_XCoord); // p_i
+		// sort S by y coordinates in decreasing order
+		Collections.sort(Yincr.points, Point.COMPARE_BY_YCoord); // q_i
+		for (int i = Yincr.getSize()-1; i > 0 ; i--){
+				Y.addPoint(Yincr.points.get(i));
+		}
 		
 		// initialize all point lists
 		for (int i = 0; i < S.getSize(); i++){
 			for (int j = 0; j < S.getSize(); j++){
-				UR[i][j] = new PointList(Color.YELLOW);
-				DL[i][j] = new PointList(Color.GREEN);
+				UR[i][j] = new PointList(Color.BLUE);
+				DL[i][j] = new PointList(Color.RED);
 			}
 		}
 		// find points in UR
 		for (int u = 0; u < S.getSize(); u++){
-			for (int i = Y.getSize()-1; i >= 0; i--){
+			for (int i = 0; i < Y.getSize(); i++){
 				for (int j = 0; j < X.getSize(); j++){
-					if (S.points.get(u).posY > Y.points.get(i).posY && S.points.get(u).posX < X.points.get(j).posX)
+					if (S.points.get(u).posY > Y.points.get(i).posY && S.points.get(u).posX < X.points.get(j).posX){
 						UR[i][j].addPoint(S.points.get(u));
-				}
-			}
-		}
-		
-		// find points in DL
-		for (int u = 0; u < S.getSize(); u++){
-			for (int i = Y.getSize()-1; i >= 0; i--){
-				for (int j = 0; j < X.getSize(); j++){
-					if (!UR[i][j].contains(S.points.get(u))) {
+					} else {
 						DL[i][j].addPoint(S.points.get(u));
+					}
+//					System.out.println("u"+i+""+j+""+UR[i][j].toString());	
+//					System.out.println("d"+i+""+j+""+DL[i][j].toString());
+					if (!contains(set1, UR[i][j])){
+						
+						set1.add(UR[i][j]);
+						set2.add(DL[i][j]);
 					}
 				}
 			}
 		}
+		
 	}
 	
-	public void splitByLine(PointList S){
+	public boolean contains(List<PointList> list, PointList pList){
+	
+		for (PointList p : list){
+			if (p.equals(pList)) return true;
+		}
+		
+		return false;
+	}
+	
+	private void splitByLine(PointList S){
 
 		// case a) and b)
 
@@ -399,8 +428,9 @@ public class OCOHAlgorithm {
 				R[i].addPoint(S.points.get(j));
 			}
 
-//			System.out.println("L[" + i + "] =" +LR[0][i].toString());
-//			System.out.println("R[" + i + "] =" +LR[1][i].toString());
+			set1.add(L[i]);
+			set2.add(R[i]);
+
 		}
 		
 	}

@@ -3,9 +3,6 @@ package OCOH;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 public class MouseHandler extends MouseAdapter{
