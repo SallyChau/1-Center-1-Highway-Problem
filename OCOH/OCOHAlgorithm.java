@@ -6,36 +6,39 @@ import java.util.Collections;
 import java.util.List;
 
 public class OCOHAlgorithm {
-	
-		List<Point> minDist1;
-		List<Point> minDist2;
-		List<Point> maxDist1;
-		List<Point> maxDist2;
+
+		public List<PointList> set_withoutTurnpike; // doesnt use turnpike, f 
+		public List<PointList> set_withTurnpike; // uses turnpike, t
+		public List<Point[]> extremePoints1;
+		public List<Point[]> extremePoints2;
+		public List<PointList> list_centersWithoutTurnpike; // set of points resulting from center()
+		public List<PointList> list_centersWithTurnpike;
+		public List<Point> minDist1; // minDistPoints
+		public List<Point> minDist2;
+		public List<Point> maxDist1; // maxDistPoints
+		public List<Point> maxDist2;
 		
-		Point currentFacility = new Point(); // turnpike endpoint CHECK WHETHER CURRENT POINTS ARE CORRECT
-		Point currentTurnpikeStart = new Point();
-		double currentRadius = 0;
+		public int solutionIndex;
+		public Point solution_facility;
+		public Point solution_turnpikeStart;
+		public double solution_radius;
 		
-		List<PointList> set1; // doesnt use turnpike, f 
-		List<PointList> set2; // uses turnpike, t
-		List<Point[]> extremePoints1;
-		List<Point[]> extremePoints2;
 		List<Point> facilityPoints;
 		List<Point> turnpikePoints;
 		List<Double> partitionRadius;
 		
-		List<PointList> c1;
-		List<PointList> c2;
+		private Point currentFacility = new Point(); // turnpike endpoint 
+		private Point currentTurnpikeStart = new Point();
+		double currentRadius = 0;
 		
 		private double prevY = 0;
-		double eps1, eps2, x = 0;
+		private double eps1, eps2, x = 0;
 		private double maxDist;
 		
 		int highwayLength;
 		int velocity;
 		
 	public void runAlgorithm(PointList customers, int highwayLength, int velocity) {
-		
 		
 		if (!customers.isEmpty()){
 			this.highwayLength = highwayLength;
@@ -47,12 +50,12 @@ public class OCOHAlgorithm {
 			turnpikePoints = new ArrayList<Point>();
 			partitionRadius = new ArrayList<Double>();
 			
-			set1 = new ArrayList<PointList>();
-			set2 = new ArrayList<PointList>();
+			set_withoutTurnpike = new ArrayList<PointList>();
+			set_withTurnpike = new ArrayList<PointList>();
 			extremePoints1 = new ArrayList<Point[]>();
 			extremePoints2 = new ArrayList<Point[]>();
-			c1 = new ArrayList<PointList>();
-			c2 = new ArrayList<PointList>();
+			list_centersWithoutTurnpike = new ArrayList<PointList>();
+			list_centersWithTurnpike = new ArrayList<PointList>();
 			
 			getPartition(customers);
 			
@@ -62,47 +65,67 @@ public class OCOHAlgorithm {
 			minDist2 = new ArrayList<Point>();
 			
 			// compute extreme points
-			for (PointList p : set1){
+			for (PointList p : set_withoutTurnpike){
 				extremePoints1.add(p.getExtremePoints());
 			}
-			for (PointList p : set2){
+			for (PointList p : set_withTurnpike){
 				extremePoints2.add(p.getExtremePoints());
 			}
 			
 			// solve basic problem for all partitions {W,H}
-			for (int i = 0; i < set1.size(); i++){
+			for (int i = 0; i < set_withoutTurnpike.size(); i++){
 
-				eps1 = Math.max(0, set1.get(i).delta() + highwayLength/velocity - set2.get(i).delta());
-				eps2 = Math.max(0, set2.get(i).delta() - set1.get(i).delta() - highwayLength/velocity);
+				eps1 = Math.max(0, set_withoutTurnpike.get(i).delta() + highwayLength/velocity - set_withTurnpike.get(i).delta());
+				eps2 = Math.max(0, set_withTurnpike.get(i).delta() - set_withoutTurnpike.get(i).delta() - highwayLength/velocity);
 
-				solveBP(set1.get(i), set2.get(i)); 
+				solveBP(set_withoutTurnpike.get(i), set_withTurnpike.get(i)); 
 				facilityPoints.add(currentFacility);
 				turnpikePoints.add(currentTurnpikeStart);
 				partitionRadius.add(currentRadius);
 				
 				// for drawing purposes
-				c1.add(center(set1.get(i), set1.get(i).delta() + eps2 + x));
-				c2.add(center(set2.get(i), set2.get(i).delta() + eps1 + x));
-				if (c1.get(i).objectContains(c1.get(i).objectMinDistPoints(c2.get(i))[0])){
-					minDist1.add(c1.get(i).objectMinDistPoints(c2.get(i))[0]); 
-					minDist2.add(c1.get(i).objectMinDistPoints(c2.get(i))[1]);
+				list_centersWithoutTurnpike.add(center(set_withoutTurnpike.get(i), set_withoutTurnpike.get(i).delta() + eps2 + x));
+				list_centersWithTurnpike.add(center(set_withTurnpike.get(i), set_withTurnpike.get(i).delta() + eps1 + x));
+				if (list_centersWithoutTurnpike.get(i).objectContains(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0])){
+					minDist1.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0]); 
+					minDist2.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[1]);
 				} else {
-					minDist1.add(c1.get(i).objectMinDistPoints(c2.get(i))[1]); 
-					minDist2.add(c1.get(i).objectMinDistPoints(c2.get(i))[0]);
+					minDist1.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[1]); 
+					minDist2.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0]);
 				}
-				maxDist1.add(c1.get(i).objectMaxDistPoints(c2.get(i))[0]); 
-				maxDist2.add(c1.get(i).objectMaxDistPoints(c2.get(i))[1]);
-				
-//				System.out.println("Facility: " + facilityPointsLR[i].toString() + " T: " + turnpikePointsLR[i]);
-//				System.out.println("Distance: " + Math.sqrt(facilityPointsLR[i].distanceSquaredTo(turnpikePointsLR[i])));
-//				System.out.println("Radius: " + partitionRadiusLR[i]);
+				maxDist1.add(list_centersWithoutTurnpike.get(i).objectMaxDistPoints(list_centersWithTurnpike.get(i))[0]); 
+				maxDist2.add(list_centersWithoutTurnpike.get(i).objectMaxDistPoints(list_centersWithTurnpike.get(i))[1]);
 			}	
 			
-			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
-			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
-			System.out.println("Radius: " + currentRadius);
+			if(customers.getSize() > 1){
+				// find optimal solution
+				solutionIndex = getMinRadiusIndex(); 
+				solution_facility = facilityPoints.get(solutionIndex);
+				solution_turnpikeStart = turnpikePoints.get(solutionIndex);
+				solution_radius = partitionRadius.get(solutionIndex);
+			}
+			
+//			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
+//			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
+//			System.out.println("Radius: " + currentRadius);
 			
 		}
+	}
+	
+	private int getMinRadiusIndex(){
+		
+		double minRadius = Double.POSITIVE_INFINITY;
+		int radiusIndex = 0;
+		
+		for (double radius : partitionRadius){
+			if (radius < minRadius) {
+				minRadius = radius;
+				radiusIndex = partitionRadius.indexOf(minRadius);
+			}
+		}
+		
+		return radiusIndex;
+		
 	}
 
 	/**
@@ -354,10 +377,10 @@ public class OCOHAlgorithm {
 					}
 //					System.out.println("u"+i+""+j+""+UR[i][j].toString());	
 //					System.out.println("d"+i+""+j+""+DL[i][j].toString());
-					if (!contains(set1, UR[i][j]) && UR[i][j].getSize() > 0){
+					if (!contains(set_withoutTurnpike, UR[i][j]) && UR[i][j].getSize() > 0){
 						
-						set1.add(UR[i][j]);
-						set2.add(DL[i][j]);
+						set_withoutTurnpike.add(UR[i][j]);
+						set_withTurnpike.add(DL[i][j]);
 					}
 				}
 			}
@@ -396,8 +419,8 @@ public class OCOHAlgorithm {
 				R[i].addPoint(S.points.get(j));
 			}
 
-			set1.add(L[i]);
-			set2.add(R[i]);
+			set_withoutTurnpike.add(L[i]);
+			set_withTurnpike.add(R[i]);
 
 		}
 		

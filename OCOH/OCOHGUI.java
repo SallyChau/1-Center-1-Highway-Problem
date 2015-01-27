@@ -362,7 +362,7 @@ public class OCOHGUI extends JPanel {
 				if (stepCounter > 0) {
 					button_prev.setEnabled(true);
 				}
-				if (stepCounter < algorithm.set1.size()-1) {
+				if (stepCounter < algorithm.set_withoutTurnpike.size()-1) {
 					button_next.setEnabled(true);
 					stepCounter++;
 				} else {
@@ -377,7 +377,7 @@ public class OCOHGUI extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (stepCounter < algorithm.set1.size()-1) {
+				if (stepCounter < algorithm.set_withoutTurnpike.size()-1) {
 					button_next.setEnabled(true);
 				}
 				if (stepCounter > 0) {
@@ -415,126 +415,135 @@ public class OCOHGUI extends JPanel {
 
 		if (!customersList.isEmpty()) {
 			runAlgorithm();
-			if (algorithm.set1.size() > 0) {
-				drawCenters();
-				drawPartition();
-				drawSmallestAxisAlignedRect();
-				drawTurnpikePos();
+			if (algorithm.set_withoutTurnpike.size() > 0) {
+//				drawCenters(stepCounter);
+//				drawPartition(stepCounter);
+//				drawSmallestAxisAlignedRect(stepCounter);
+//				drawTurnpikePos(stepCounter);
+				drawSolution();
 			}
 		}
 	}
 	
-	public void drawPartition(){
-		// draw Partitions
-		algorithm.set1.get(stepCounter).draw(g);
-		algorithm.set2.get(stepCounter).draw(g);
+	public void drawSolution(){
+		int index = algorithm.solutionIndex;
+		drawCenters(index);
+		drawSmallestAxisAlignedRect(index);
+		drawPartition(index);
+		drawTurnpikePos(index);
 	}
 	
-	public void drawTurnpikePos(){
+	public void drawPartition(int i){
+		// draw Partitions
+		algorithm.set_withoutTurnpike.get(i).draw(g);
+		algorithm.set_withTurnpike.get(i).draw(g);
+	}
+	
+	public void drawTurnpikePos(int i){
 		// draw turnpike
 		((Graphics2D) g).setStroke(new BasicStroke(2));
 		g.setColor(Color.BLACK);
-		g.drawLine((int) algorithm.facilityPoints.get(stepCounter).posX,
-				(int) algorithm.facilityPoints.get(stepCounter).posY,
-				(int) algorithm.turnpikePoints.get(stepCounter).posX,
-				(int) algorithm.turnpikePoints.get(stepCounter).posY);
-		algorithm.facilityPoints.get(stepCounter).setColor(Color.GREEN);
-		algorithm.facilityPoints.get(stepCounter).draw(g);
-		algorithm.turnpikePoints.get(stepCounter).setColor(Color.ORANGE);
-		algorithm.turnpikePoints.get(stepCounter).draw(g);
+		g.drawLine((int) algorithm.facilityPoints.get(i).posX,
+				(int) algorithm.facilityPoints.get(i).posY,
+				(int) algorithm.turnpikePoints.get(i).posX,
+				(int) algorithm.turnpikePoints.get(i).posY);
+		algorithm.facilityPoints.get(i).setColor(Color.GREEN);
+		algorithm.facilityPoints.get(i).draw(g);
+		algorithm.turnpikePoints.get(i).setColor(Color.ORANGE);
+		algorithm.turnpikePoints.get(i).draw(g);
 	}
 	
-	public void drawDistPoints(){
-		algorithm.maxDist1.get(stepCounter).setColor(Color.CYAN);
-		algorithm.maxDist2.get(stepCounter).setColor(Color.MAGENTA);
-		algorithm.minDist1.get(stepCounter).setColor(Color.CYAN);
-		algorithm.minDist2.get(stepCounter).setColor(Color.MAGENTA);
-		algorithm.maxDist1.get(stepCounter).draw(g);
-		algorithm.maxDist2.get(stepCounter).draw(g);
-		algorithm.minDist1.get(stepCounter).draw(g);
-		algorithm.minDist2.get(stepCounter).draw(g);
+	public void drawDistPoints(int i){
+		algorithm.maxDist1.get(i).setColor(Color.CYAN);
+		algorithm.maxDist2.get(i).setColor(Color.MAGENTA);
+		algorithm.minDist1.get(i).setColor(Color.CYAN);
+		algorithm.minDist2.get(i).setColor(Color.MAGENTA);
+		algorithm.maxDist1.get(i).draw(g);
+		algorithm.maxDist2.get(i).draw(g);
+		algorithm.minDist1.get(i).draw(g);
+		algorithm.minDist2.get(i).draw(g);
 	}
 
-	public void drawSmallestAxisAlignedRect(){
+	public void drawSmallestAxisAlignedRect(int i){
 		// draw smallest axis aligned rects
 //		if (algorithm.extremePoints1.get(stepCounter)[0] != null){
 			g.setColor(Color.BLUE);
 			g.drawRect(
-					(int) algorithm.extremePoints1.get(stepCounter)[0].posX,
-					(int) algorithm.extremePoints1.get(stepCounter)[2].posY,
-					(int) Math.abs(algorithm.extremePoints1.get(stepCounter)[0].posX
-							- algorithm.extremePoints1.get(stepCounter)[1].posX),
-					(int) Math.abs(algorithm.extremePoints1.get(stepCounter)[2].posY
-							- algorithm.extremePoints1.get(stepCounter)[3].posY));
+					(int) algorithm.extremePoints1.get(i)[0].posX,
+					(int) algorithm.extremePoints1.get(i)[2].posY,
+					(int) Math.abs(algorithm.extremePoints1.get(i)[0].posX
+							- algorithm.extremePoints1.get(i)[1].posX),
+					(int) Math.abs(algorithm.extremePoints1.get(i)[2].posY
+							- algorithm.extremePoints1.get(i)[3].posY));
 //		}
 //		if (algorithm.extremePoints2.get(stepCounter)[0] != null){
 			g.setColor(Color.RED);
 			g.drawRect(
-					(int) algorithm.extremePoints2.get(stepCounter)[0].posX,
-					(int) algorithm.extremePoints2.get(stepCounter)[2].posY,
-					(int) Math.abs(algorithm.extremePoints2.get(stepCounter)[0].posX
-							- algorithm.extremePoints2.get(stepCounter)[1].posX),
-					(int) Math.abs(algorithm.extremePoints2.get(stepCounter)[2].posY
-							- algorithm.extremePoints2.get(stepCounter)[3].posY));
+					(int) algorithm.extremePoints2.get(i)[0].posX,
+					(int) algorithm.extremePoints2.get(i)[2].posY,
+					(int) Math.abs(algorithm.extremePoints2.get(i)[0].posX
+							- algorithm.extremePoints2.get(i)[1].posX),
+					(int) Math.abs(algorithm.extremePoints2.get(i)[2].posY
+							- algorithm.extremePoints2.get(i)[3].posY));
 //		}
 	}
 	
-	public void drawCenters(){
+	public void drawCenters(int i){
 		// draw centers
-		if (algorithm.c1.get(stepCounter).getSize() == 1) {
-			algorithm.c1.get(stepCounter).draw(g);
-		} else if (algorithm.c1.get(stepCounter).getSize() == 2) {
+		if (algorithm.list_centersWithoutTurnpike.get(i).getSize() == 1) {
+			algorithm.list_centersWithoutTurnpike.get(i).draw(g);
+		} else if (algorithm.list_centersWithoutTurnpike.get(i).getSize() == 2) {
 			// algorithm.c1[stepCounter].draw(g);
-			g.drawLine((int) algorithm.c1.get(stepCounter).points.get(0)
-					.getX(), (int) algorithm.c1.get(stepCounter).points
+			g.drawLine((int) algorithm.list_centersWithoutTurnpike.get(i).points.get(0)
+					.getX(), (int) algorithm.list_centersWithoutTurnpike.get(i).points
 					.get(0).getY(),
-					(int) algorithm.c1.get(stepCounter).points.get(1)
+					(int) algorithm.list_centersWithoutTurnpike.get(i).points.get(1)
 							.getX(),
-					(int) algorithm.c1.get(stepCounter).points.get(1)
+					(int) algorithm.list_centersWithoutTurnpike.get(i).points.get(1)
 							.getY());
-		} else if (algorithm.c1.get(stepCounter).getSize() == 4) {
+		} else if (algorithm.list_centersWithoutTurnpike.get(i).getSize() == 4) {
 			// algorithm.c1[stepCounter].draw(g);
 			g.setColor(new Color(214, 207, 234, 145));
 			g.fillRect(
-					(int) algorithm.c1.get(stepCounter).points.get(0)
+					(int) algorithm.list_centersWithoutTurnpike.get(i).points.get(0)
 							.getX(),
-					(int) algorithm.c1.get(stepCounter).points.get(0)
+					(int) algorithm.list_centersWithoutTurnpike.get(i).points.get(0)
 							.getY(),
-					Math.abs((int) algorithm.c1.get(stepCounter).points
+					Math.abs((int) algorithm.list_centersWithoutTurnpike.get(i).points
 							.get(2).getX()
-							- (int) algorithm.c1.get(stepCounter).points
+							- (int) algorithm.list_centersWithoutTurnpike.get(i).points
 									.get(0).getX()),
-					Math.abs((int) algorithm.c1.get(stepCounter).points
+					Math.abs((int) algorithm.list_centersWithoutTurnpike.get(i).points
 							.get(1).getY())
-							- (int) algorithm.c1.get(stepCounter).points
+							- (int) algorithm.list_centersWithoutTurnpike.get(i).points
 									.get(0).getY());
 		}
-		if (algorithm.c2.get(stepCounter).getSize() == 1) {
-			algorithm.c2.get(stepCounter).draw(g);
-		} else if (algorithm.c2.get(stepCounter).getSize() == 2) {
+		if (algorithm.list_centersWithTurnpike.get(i).getSize() == 1) {
+			algorithm.list_centersWithTurnpike.get(i).draw(g);
+		} else if (algorithm.list_centersWithTurnpike.get(i).getSize() == 2) {
 			// algorithm.c2[stepCounter].draw(g);
-			g.drawLine((int) algorithm.c2.get(stepCounter).points.get(0)
-					.getX(), (int) algorithm.c2.get(stepCounter).points
+			g.drawLine((int) algorithm.list_centersWithTurnpike.get(i).points.get(0)
+					.getX(), (int) algorithm.list_centersWithTurnpike.get(i).points
 					.get(0).getY(),
-					(int) algorithm.c2.get(stepCounter).points.get(1)
+					(int) algorithm.list_centersWithTurnpike.get(i).points.get(1)
 							.getX(),
-					(int) algorithm.c2.get(stepCounter).points.get(1)
+					(int) algorithm.list_centersWithTurnpike.get(i).points.get(1)
 							.getY());
-		} else if (algorithm.c2.get(stepCounter).getSize() == 4) {
+		} else if (algorithm.list_centersWithTurnpike.get(i).getSize() == 4) {
 			// algorithm.c2[stepCounter].draw(g);
 			g.setColor(new Color(214, 207, 234, 145));
 			g.fillRect(
-					(int) algorithm.c2.get(stepCounter).points.get(0)
+					(int) algorithm.list_centersWithTurnpike.get(i).points.get(0)
 							.getX(),
-					(int) algorithm.c2.get(stepCounter).points.get(0)
+					(int) algorithm.list_centersWithTurnpike.get(i).points.get(0)
 							.getY(),
-					Math.abs((int) algorithm.c2.get(stepCounter).points
+					Math.abs((int) algorithm.list_centersWithTurnpike.get(i).points
 							.get(2).getX()
-							- (int) algorithm.c2.get(stepCounter).points
+							- (int) algorithm.list_centersWithTurnpike.get(i).points
 									.get(0).getX()),
-					Math.abs((int) algorithm.c2.get(stepCounter).points
+					Math.abs((int) algorithm.list_centersWithTurnpike.get(i).points
 							.get(1).getY())
-							- (int) algorithm.c2.get(stepCounter).points
+							- (int) algorithm.list_centersWithTurnpike.get(i).points
 									.get(0).getY());
 		}
 	}
