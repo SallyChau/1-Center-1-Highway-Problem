@@ -85,11 +85,7 @@ public class Point {
 	
 	public void drawBoundings(Graphics g){
 		g.setColor(Color.BLACK);
-		if(color == Color.RED){
-			g.drawOval((int)posX - RADIUS, (int)posY - RADIUS, 2 * RADIUS, 2 * RADIUS);
-		}else{
-			g.drawRect((int)posX - RADIUS, (int)posY - RADIUS, 2 * RADIUS, 2 * RADIUS);
-		}
+		g.drawOval((int)posX - RADIUS, (int)posY - RADIUS, 2 * RADIUS, 2 * RADIUS);
 	}
 	public boolean collide(Point p) {
 		double abs = distanceSquaredTo(p);
@@ -201,7 +197,12 @@ public class Point {
 		return dir;
 	}
 	
-public double[] getDirectionVectorTo(Point p){
+	public void drawLabel(Graphics g){
+		g.setColor(Color.BLACK);
+		g.fillRect((int)(posX + 10), (int)(posY + 10), 20, 20);
+	}
+	
+	public double[] getDirectionVectorTo(Point p){
 		
 		//vector from point to p
 		double[] dir = new double[2];

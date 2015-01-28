@@ -86,6 +86,7 @@ public class OCOHAlgorithm {
 				// for drawing purposes
 				list_centersWithoutTurnpike.add(center(set_withoutTurnpike.get(i), set_withoutTurnpike.get(i).delta() + eps2 + x));
 				list_centersWithTurnpike.add(center(set_withTurnpike.get(i), set_withTurnpike.get(i).delta() + eps1 + x));
+				
 				if (list_centersWithoutTurnpike.get(i).objectContains(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0])){
 					minDist1.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0]); 
 					minDist2.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[1]);

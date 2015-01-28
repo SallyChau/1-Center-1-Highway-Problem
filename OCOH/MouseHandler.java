@@ -30,8 +30,6 @@ public class MouseHandler extends MouseAdapter{
 	public void mousePressed(MouseEvent e) {
 		
 		Point p = new Point(e.getX(), e.getY());
-		
-		System.out.println(p.toString());
 		if(mouseInScreen(e)){
 			
 			if(SwingUtilities.isRightMouseButton(e)){
@@ -48,6 +46,7 @@ public class MouseHandler extends MouseAdapter{
 		 // Erase the "click" highlight
         if (panel.dragged != null) {
             panel.repaint();
+            
         }
         panel.dragged = null;
         
@@ -61,6 +60,7 @@ public class MouseHandler extends MouseAdapter{
 		if(mouseInScreen(e)){
 			Point p = new Point(e.getX(), e.getY());
 			panel.dragged(p);
+			panel.setXYLabel(p);
 		}
 
 	}
@@ -69,7 +69,8 @@ public class MouseHandler extends MouseAdapter{
 		 
 		Point p = new Point(e.getX(),e.getY());
 		panel.moveMouse(p);
-		 
+		panel.setXYLabel(p);
+		
 	}
 	public boolean mouseInScreen(MouseEvent e){
 		
