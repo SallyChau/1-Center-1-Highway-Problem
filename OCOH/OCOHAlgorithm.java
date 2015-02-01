@@ -84,6 +84,7 @@ public class OCOHAlgorithm {
 				partitionRadius.add(currentRadius);
 				
 				// for drawing purposes
+				// fixed length
 				list_centersWithoutTurnpike.add(center(set_withoutTurnpike.get(i), set_withoutTurnpike.get(i).delta() + eps2 + x));
 				list_centersWithTurnpike.add(center(set_withTurnpike.get(i), set_withTurnpike.get(i).delta() + eps1 + x));
 				
@@ -103,7 +104,7 @@ public class OCOHAlgorithm {
 				solutionIndex = getMinRadiusIndex(); 
 				solution_facility = facilityPoints.get(solutionIndex);
 				solution_turnpikeStart = turnpikePoints.get(solutionIndex);
-				solution_radius = partitionRadius.get(solutionIndex);
+//				solution_radius = partitionRadius.get(solutionIndex);
 			}
 			
 //			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
@@ -299,8 +300,10 @@ public class OCOHAlgorithm {
 		} else {
 			// we can move in x direction
 			xLength = Math.abs(currentCenter.posX + radius - extrema[1].posX);
+//			xStart = currentCenter.posX - xLength;
+//			xEnd = currentCenter.posX + xLength;
 			xStart = currentCenter.posX - xLength;
-			xEnd = currentCenter.posX + xLength;
+			xEnd = currentCenter.posX;
 		}
 
 		// find Y coordinates
@@ -312,8 +315,10 @@ public class OCOHAlgorithm {
 		} else {
 			// we can move in y direction
 			yLength = Math.abs(currentCenter.posY + radius - extrema[3].posY);
+//			yStart = currentCenter.posY - yLength;
+//			yEnd = currentCenter.posY + yLength;
 			yStart = currentCenter.posY - yLength;
-			yEnd = currentCenter.posY + yLength;
+			yEnd = currentCenter.posY;
 		}
 		
 		// points of centers
@@ -376,8 +381,6 @@ public class OCOHAlgorithm {
 					} else {
 						DL[i][j].addPoint(S.points.get(u));
 					}
-//					System.out.println("u"+i+""+j+""+UR[i][j].toString());	
-//					System.out.println("d"+i+""+j+""+DL[i][j].toString());
 					if (!contains(set_withoutTurnpike, UR[i][j]) && UR[i][j].getSize() > 0){
 						
 						set_withoutTurnpike.add(UR[i][j]);
