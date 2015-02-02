@@ -205,7 +205,6 @@ public class LineSegment extends Segment2{
 	public Point[] minDistPointsTo(LineSegment l){
 		// distance between 2 segments in the plane
 		
-		List<Double> distances = new ArrayList<Double>();
 		double minDist = Double.POSITIVE_INFINITY;
 		
 		Point[] minDistPoints = new Point[2]; // points which span min distance

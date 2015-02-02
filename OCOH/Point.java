@@ -5,8 +5,6 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
-import anja.geom.Point2;
 import anja.geom.Rectangle2;
 import anja.geom.Segment2;
 
@@ -85,7 +83,7 @@ public class Point {
 	
 	public void drawBoundings(Graphics g){
 		g.setColor(Color.BLACK);
-		g.drawOval((int)posX - RADIUS, (int)posY - RADIUS, 2 * RADIUS, 2 * RADIUS);
+		g.drawRect((int)posX - RADIUS, (int)posY - RADIUS, 2 * RADIUS, 2 * RADIUS);
 	}
 	public boolean collide(Point p) {
 		double abs = distanceSquaredTo(p);
