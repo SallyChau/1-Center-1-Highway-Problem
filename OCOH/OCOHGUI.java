@@ -17,10 +17,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -38,13 +36,7 @@ public class OCOHGUI extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	
-	private boolean animationActive = false;
-	private boolean button_next_clicked = false;
-	private boolean button_prev_clicked = false;
-	private boolean runAlgo = true;
-	
 	// GUI elements
-	
 	private Graphics g;
 	private static OCOHGUI panel;
 	Listener l = new Listener();
@@ -62,9 +54,9 @@ public class OCOHGUI extends JPanel {
 
 	// Labels
 	JLabel label_mode = new JLabel("MODE 1C1H");
-	JLabel label_underline = new JLabel("________________");
-	JLabel label_underline1 = new JLabel("________________");
-	JLabel label_underline2 = new JLabel("________________");
+	JLabel label_underline = new JLabel("________________________");
+	JLabel label_underline1 = new JLabel("________________________");
+	JLabel label_underline2 = new JLabel("________________________");
 	JLabel label_highway = new JLabel("Highway: ");
 	JLabel label_length = new JLabel("Length: ");
 	JLabel label_velocity = new JLabel("Velocity: ");
@@ -76,7 +68,6 @@ public class OCOHGUI extends JPanel {
 	JLabel step = new JLabel(" ");
 
 	// Sliders
-	
 	private JSlider slider_length = new JSlider(JSlider.HORIZONTAL, 50, 200, 100);
 	private JSlider slider_velocity = new JSlider(JSlider.HORIZONTAL, 0, 50, 10);
 	private JSlider slider_aniSpeed = new JSlider(JSlider.HORIZONTAL, 1, 5, 3);
@@ -107,6 +98,10 @@ public class OCOHGUI extends JPanel {
 	ImageIcon icon_clear = createImageIcon("resources/trash.png");
 
 	// Variables
+	private boolean animationActive = false;
+	private boolean button_next_clicked = false;
+	private boolean button_prev_clicked = false;
+	private boolean runAlgo = true;
 	OCOHAlgorithm algorithm;
 	public PointList customersList = new PointList();
 	public int velocity;
@@ -151,7 +146,6 @@ public class OCOHGUI extends JPanel {
 	
 	public void constrainButtons(){
 		
-		
 		if (algorithm.set_withoutTurnpike != null){
 			if (stepCounter < algorithm.set_withoutTurnpike.size()-1 && customersList.getSize() > 2){
 				button_next.setEnabled(true);
@@ -179,6 +173,7 @@ public class OCOHGUI extends JPanel {
 		}
 		
 		if (animationActive) {
+			
 			button_prev.setEnabled(false);
 			button_next.setEnabled(false);
 			checkBox_showSolution.setSelected(true);
@@ -192,7 +187,7 @@ public class OCOHGUI extends JPanel {
 			
 			button_animation.setText("\u25A0");
 			button_animation.setToolTipText("Stop animation");
-			
+		
 		} else {
 			button_animation.setText("\u25BA");
 			button_animation.setToolTipText("Start animation");
@@ -327,7 +322,6 @@ public class OCOHGUI extends JPanel {
 		gbc.gridy = 15;
 		slider_aniSpeed.setPreferredSize(new Dimension(80,50));
 		slider_aniSpeed.setMajorTickSpacing(1);
-//		slider_aniSpeed.setMinorTickSpacing(1);
 		slider_aniSpeed.setPaintTicks(true);
 		slider_aniSpeed.setPaintLabels(true);
 		slider_aniSpeed.setFont(font_default);
@@ -582,41 +576,44 @@ public class OCOHGUI extends JPanel {
 	
 	public void rightMouseClick(Point p) {
 		
-		if (pointAlreadyExists(p)) {
-
-			deletePoint(p);
-		
+		if (!animationActive){
+			if (pointAlreadyExists(p)) {
+	
+				deletePoint(p);
+			
+			}
+	
+			pointed = null;
+			// algorithm.clear();
+			buttonsCheck();
+			// runAlgorithm();
+			repaint();
 		}
-
-		pointed = null;
-		// algorithm.clear();
-		buttonsCheck();
-		// runAlgorithm();
-		repaint();
-		
 	}
 	
 	public void leftMouseClick(Point p) {
 
-		if (!pointAlreadyExists(p) && (checkBox_showCustomers.isSelected() || checkBox_showSolution.isSelected())) {
-			
-			addPoint(p);
-		
-		} else {
-
-			if (customersList.contains(p) && (checkBox_showCustomers.isSelected() || checkBox_showSolution.isSelected())) {
+		if (!animationActive){
+			if (!pointAlreadyExists(p) && (checkBox_showCustomers.isSelected() || checkBox_showSolution.isSelected())) {
 				
-				dragged = customersList.search(p);
+				addPoint(p);
+			
+			} else {
+	
+				if (customersList.contains(p) && (checkBox_showCustomers.isSelected() || checkBox_showSolution.isSelected())) {
+					
+					dragged = customersList.search(p);
+				
+				}
+				// Highlight the clicked point
+				repaint();
+			
 			
 			}
-			// Highlight the clicked point
-			repaint();
-		
-		
+	
+			buttonsCheck();
+			// runAlgorithm();
 		}
-
-		buttonsCheck();
-		// runAlgorithm();
 	}
 	
 	// draw methods
@@ -641,7 +638,6 @@ public class OCOHGUI extends JPanel {
 	public void drawTurnpikePos(int i){
 		
 		// draw turnpike
-		
 		
 		((Graphics2D) g).setStroke(new BasicStroke(2));
 		g.setColor(Color.BLACK);
@@ -702,7 +698,6 @@ public class OCOHGUI extends JPanel {
 	
 	public void drawSmallestAxisAlignedRect(int i){
 		// draw smallest axis aligned rects
-//		if (algorithm.extremePoints1.get(stepCounter)[0] != null){
 			g.setColor(Color.BLUE);
 			g.drawRect(
 					(int) algorithm.extremePoints1.get(i)[0].posX,
@@ -711,8 +706,6 @@ public class OCOHGUI extends JPanel {
 							- algorithm.extremePoints1.get(i)[1].posX),
 					(int) Math.abs(algorithm.extremePoints1.get(i)[2].posY
 							- algorithm.extremePoints1.get(i)[3].posY));
-//		}
-//		if (algorithm.extremePoints2.get(stepCounter)[0] != null){
 			g.setColor(Color.RED);
 			g.drawRect(
 					(int) algorithm.extremePoints2.get(i)[0].posX,
@@ -721,7 +714,7 @@ public class OCOHGUI extends JPanel {
 							- algorithm.extremePoints2.get(i)[1].posX),
 					(int) Math.abs(algorithm.extremePoints2.get(i)[2].posY
 							- algorithm.extremePoints2.get(i)[3].posY));
-//		}
+
 	}
 	
 	public void drawCenters(int i){
@@ -729,7 +722,6 @@ public class OCOHGUI extends JPanel {
 		if (algorithm.list_centersWithoutTurnpike.get(i).getSize() == 1) {
 			algorithm.list_centersWithoutTurnpike.get(i).draw(g);
 		} else if (algorithm.list_centersWithoutTurnpike.get(i).getSize() == 2) {
-			// algorithm.c1[stepCounter].draw(g);
 			g.drawLine((int) algorithm.list_centersWithoutTurnpike.get(i).points.get(0)
 					.getX(), (int) algorithm.list_centersWithoutTurnpike.get(i).points
 					.get(0).getY(),
@@ -738,8 +730,6 @@ public class OCOHGUI extends JPanel {
 					(int) algorithm.list_centersWithoutTurnpike.get(i).points.get(1)
 							.getY());
 		} else if (algorithm.list_centersWithoutTurnpike.get(i).getSize() == 4) {
-			// algorithm.c1[stepCounter].draw(g);
-//			g.setColor(new Color(214, 207, 234, 145));
 			g.setColor(Color.PINK);
 			g.fillRect(
 					(int) algorithm.list_centersWithoutTurnpike.get(i).points.get(0)
@@ -758,7 +748,6 @@ public class OCOHGUI extends JPanel {
 		if (algorithm.list_centersWithTurnpike.get(i).getSize() == 1) {
 			algorithm.list_centersWithTurnpike.get(i).draw(g);
 		} else if (algorithm.list_centersWithTurnpike.get(i).getSize() == 2) {
-			// algorithm.c2[stepCounter].draw(g);
 			g.drawLine((int) algorithm.list_centersWithTurnpike.get(i).points.get(0)
 					.getX(), (int) algorithm.list_centersWithTurnpike.get(i).points
 					.get(0).getY(),
@@ -767,7 +756,6 @@ public class OCOHGUI extends JPanel {
 					(int) algorithm.list_centersWithTurnpike.get(i).points.get(1)
 							.getY());
 		} else if (algorithm.list_centersWithTurnpike.get(i).getSize() == 4) {
-			// algorithm.c2[stepCounter].draw(g);
 			g.setColor(new Color(214, 207, 234, 145));
 			g.fillRect(
 					(int) algorithm.list_centersWithTurnpike.get(i).points.get(0)
@@ -829,8 +817,6 @@ public class OCOHGUI extends JPanel {
 							drawBalls(stepCounter);
 							drawPartition(stepCounter);
 							drawTurnpikePos(stepCounter);
-	//						button_next_clicked = false;
-	//						button_prev_clicked = false;
 						}
 						else if (checkBox_showSolution.isSelected()) {
 							customersList.draw(g);
@@ -1001,15 +987,41 @@ public class OCOHGUI extends JPanel {
 	}
 	
 	public void runExample1(){
-		//TODO
+		
+		// case c)
+		clear();
+		customersList.addPoint(new Point(613, 102));
+		customersList.addPoint(new Point(388, 371));
+		runAlgorithm();
+		
 	}
 	
 	public void runExample2(){
-		//TODO
+
+		clear();
+		customersList.addPoint(new Point(325, 255));
+		customersList.addPoint(new Point(347, 181));
+		customersList.addPoint(new Point(499, 230));
+		customersList.addPoint(new Point(519, 259));
+		customersList.addPoint(new Point(602, 179));
+		customersList.addPoint(new Point(612, 104));
+		customersList.addPoint(new Point(681, 140));
+		customersList.addPoint(new Point(638, 251));
+		customersList.addPoint(new Point(652, 333));
+		runAlgorithm();
+		
 	}
 	
 	public void runExample3(){
-		//TODO
+		
+		clear();
+		customersList.addPoint(new Point(496, 258));
+		customersList.addPoint(new Point(507, 275));
+		customersList.addPoint(new Point(655, 215));
+		customersList.addPoint(new Point(647, 186));
+		customersList.addPoint(new Point(670, 169));
+		runAlgorithm();
+		
 	}
 	
 	public void runAlgorithm() {
