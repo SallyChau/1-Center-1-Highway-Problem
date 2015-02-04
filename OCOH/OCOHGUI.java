@@ -17,8 +17,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -56,6 +58,7 @@ public class OCOHGUI extends JPanel {
 	JPanel panel_west = new JPanel();
 	JPanel panel_screen = new JPanel();
 	JPanel panel_south = new JPanel();
+	JPanel panel_examples = new JPanel();
 
 	// Labels
 	JLabel label_mode = new JLabel("MODE 1C1H");
@@ -76,14 +79,16 @@ public class OCOHGUI extends JPanel {
 	
 	private JSlider slider_length = new JSlider(JSlider.HORIZONTAL, 50, 200, 100);
 	private JSlider slider_velocity = new JSlider(JSlider.HORIZONTAL, 0, 50, 10);
+	private JSlider slider_aniSpeed = new JSlider(JSlider.HORIZONTAL, 1, 5, 3);
 	
 	// Buttons
-	JButton button_prev = new JButton("\u25c4");
-	JButton button_next = new JButton("\u25BA");
+	JButton button_prev = new JButton("\u2759\u25c4");
+	JButton button_next = new JButton("\u25BA\u2759");
 	JButton button_clear = new JButton();
-	JButton button_animation = new JButton("PLAY ANIMATION");
+	JButton button_animation = new JButton("\u25BA");
 	JRepeatButton button_zoomIn = new JRepeatButton();
 	JRepeatButton button_zoomOut = new JRepeatButton();
+	JButton button_display = new JButton("\u21BA");
 	
 	// Checkbox
 	JCheckBox checkBox_fixedLength = new JCheckBox("fixed");
@@ -91,7 +96,7 @@ public class OCOHGUI extends JPanel {
 	JCheckBox checkBox_showSolution = new JCheckBox("Solution");
 
 	// Combobox
-	String[] string_examples = { "Set points ...", "Example 1", "Example 2", "Example 3" };
+	String[] string_examples = { "- - - - - - - - - - -", "Example 1", "Example 2", "Example 3" };
 	JComboBox box_examples = new JComboBox(string_examples);
 	String[] string_highways = { "Turnpike", "Freeway" };
 	JComboBox box_highways = new JComboBox(string_highways);
@@ -109,6 +114,7 @@ public class OCOHGUI extends JPanel {
 	Point dragged;
 	Point pointed;
 	int stepCounter = 0;
+	int aniSpeed = 1;
 	
 	private OCOHGUI(OCOHAlgorithm algorithm) {
 		
@@ -145,29 +151,27 @@ public class OCOHGUI extends JPanel {
 	
 	public void constrainButtons(){
 		
-		if (stepCounter > 0){
-			button_prev.setEnabled(true);
-		} else {
-			button_prev.setEnabled(false);
-		}
-	
+		
 		if (algorithm.set_withoutTurnpike != null){
-			if (stepCounter < algorithm.set_withoutTurnpike.size()-1){
+			if (stepCounter < algorithm.set_withoutTurnpike.size()-1 && customersList.getSize() > 2){
 				button_next.setEnabled(true);
 			} else button_next.setEnabled(false);
 		
-		
+			if (stepCounter > 0 && customersList.getSize() > 2){
+				button_prev.setEnabled(true);
+			} else {
+				button_prev.setEnabled(false);
+				
+			}
+			
 			if (algorithm.set_withoutTurnpike.size() < 1 || customersList.getSize() < 2){
 				button_animation.setEnabled(false);
 				button_prev.setEnabled(false);
 				button_next.setEnabled(false);
-				
-			}
-			else {
+			} else {
 				button_animation.setEnabled(true);
-				button_prev.setEnabled(true);
-				button_next.setEnabled(true);
 			}
+			
 		} else {
 			button_animation.setEnabled(false);
 			button_prev.setEnabled(false);
@@ -178,7 +182,26 @@ public class OCOHGUI extends JPanel {
 			button_prev.setEnabled(false);
 			button_next.setEnabled(false);
 			checkBox_showSolution.setSelected(true);
+			checkBox_showSolution.setEnabled(false);
 			checkBox_showCustomers.setSelected(false);
+			checkBox_showCustomers.setEnabled(false);
+			slider_length.setEnabled(false);
+			slider_velocity.setEnabled(false);
+			box_examples.setEnabled(false);
+			box_highways.setEnabled(false);
+			
+			button_animation.setText("\u25A0");
+			button_animation.setToolTipText("Stop animation");
+			
+		} else {
+			button_animation.setText("\u25BA");
+			button_animation.setToolTipText("Start animation");
+			checkBox_showSolution.setEnabled(true);
+			checkBox_showCustomers.setEnabled(true);
+			slider_length.setEnabled(true);
+			slider_velocity.setEnabled(true);
+			box_examples.setEnabled(true);
+			box_highways.setEnabled(true);
 		}
 		
 	}
@@ -228,7 +251,7 @@ public class OCOHGUI extends JPanel {
 		panel_west.add(checkBox_fixedLength, gbc);
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.gridy = 5;
-		slider_length.setPreferredSize(new Dimension(140,50));
+		slider_length.setPreferredSize(new Dimension(160,50));
 		slider_length.setMajorTickSpacing(50);
 		slider_length.setMinorTickSpacing(25);
 		slider_length.setPaintTicks(true);
@@ -241,7 +264,7 @@ public class OCOHGUI extends JPanel {
 		label_velocity.setFont(font_default);
 		panel_west.add(label_velocity, gbc);
 
-		// textfield for velocity
+		// Slider for velocity
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 7;
 		slider_velocity.setPreferredSize(new Dimension(120,50));
@@ -265,10 +288,13 @@ public class OCOHGUI extends JPanel {
 
 		// ComboBox for Examples
 		gbc.insets = new Insets(0, 0, 3, 0);
-		gbc.fill = GridBagConstraints.BOTH;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 10;
+		button_display.setFont(font_default);
 		box_examples.setFont(font_default);
-		panel_west.add(box_examples, gbc);
+		panel_examples.add(box_examples);
+		panel_examples.add(button_display);
+		panel_west.add(panel_examples, gbc);
 
 		// Label "Step by Step"
 		gbc.fill = GridBagConstraints.NONE;
@@ -279,22 +305,37 @@ public class OCOHGUI extends JPanel {
 		// Buttons Step by Step
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 13;
-		JPanel stepsPanel = new JPanel();
+		JPanel panel_steps = new JPanel();
 		button_prev.setToolTipText("Show previous step");
+		button_prev.setFont(font_default);
 		button_next.setToolTipText("Show next step");
-		stepsPanel.add(button_prev);
-		stepsPanel.add(button_next);
-		panel_west.add(stepsPanel, gbc);
-
-		gbc.gridy = 14;
+		button_next.setFont(font_default);
 		button_animation.setFont(font_default);
 		button_animation.setToolTipText("Start animation");
-		panel_west.add(button_animation, gbc);
-		panel_west.add(new JLabel(""), gbc);
+		panel_steps.add(button_prev);
+		panel_steps.add(button_animation);
+		panel_steps.add(button_next);
+		panel_west.add(panel_steps, gbc);
+		
+		// Animation speed slider
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridy = 14;
+		JLabel label_aniSpeed = new JLabel("Animationspeed: ");
+		label_aniSpeed.setFont(font_default);
+		panel_west.add(label_aniSpeed, gbc);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridy = 15;
+		slider_aniSpeed.setPreferredSize(new Dimension(80,50));
+		slider_aniSpeed.setMajorTickSpacing(1);
+//		slider_aniSpeed.setMinorTickSpacing(1);
+		slider_aniSpeed.setPaintTicks(true);
+		slider_aniSpeed.setPaintLabels(true);
+		slider_aniSpeed.setFont(font_default);
+		panel_west.add(slider_aniSpeed, gbc);
 
 		// Label "Show"
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.gridy = 15;
+		gbc.gridy = 16;
 		label_show.setFont(font_title);
 		gbc.anchor = GridBagConstraints.LINE_START;
 		panel_west.add(label_show, gbc);
@@ -303,13 +344,13 @@ public class OCOHGUI extends JPanel {
 
 		// Checkbox
 		gbc.insets = new Insets(0, 0, 3, 0);
-		gbc.gridy = 16;
+		gbc.gridy = 17;
 		checkBox_showCustomers.setFont(font_default);
 		panel_west.add(checkBox_showCustomers, gbc);
-		gbc.gridy = 17;
+		gbc.gridy = 18;
 		checkBox_showSolution.setFont(font_default);
 		panel_west.add(checkBox_showSolution, gbc);
-		gbc.gridy = 18;
+		gbc.gridy = 19;
 	
 	}
 	
@@ -365,9 +406,9 @@ public class OCOHGUI extends JPanel {
 		add(panel_south, BorderLayout.SOUTH);
 		add(panel_west, BorderLayout.WEST);
 		add(panel_east, BorderLayout.EAST);
-		
 
 		registerListeners();
+		constrainButtons();
 		
 	}
 
@@ -392,6 +433,32 @@ public class OCOHGUI extends JPanel {
 	public void registerListeners() {
 
 		// Register the listeners
+		
+		button_display.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+
+				clear();
+				if (box_examples.getSelectedIndex() == 1) {
+					
+					runExample1();
+					
+				} else if (box_examples.getSelectedIndex() == 2) {
+					
+					runExample2();
+					
+				} else if (box_examples.getSelectedIndex() == 3) {
+					
+					runExample3();
+				
+				} 
+				
+			}
+			
+		});
+		
+		slider_aniSpeed.addChangeListener(new SliderListener());
 		
 		slider_length.addChangeListener(new SliderListener());
 		
@@ -469,9 +536,14 @@ public class OCOHGUI extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
-				stepCounter = 0;
-				AnimationThread animation = new AnimationThread();
-				animation.start();
+					stepCounter = 0;
+					AnimationThread animation = new AnimationThread();
+				if (!animationActive){
+					animation.start();
+				} else {
+					animationActive = false;
+					animation.interrupt();
+				}
 				
 			}
 			
@@ -738,7 +810,6 @@ public class OCOHGUI extends JPanel {
 		Graphics2D g = (Graphics2D) graph;
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g.setStroke(new BasicStroke(1));
 		super.paintComponent(graph);
 		this.g = g;
 
@@ -929,10 +1000,23 @@ public class OCOHGUI extends JPanel {
 
 	}
 	
+	public void runExample1(){
+		//TODO
+	}
+	
+	public void runExample2(){
+		//TODO
+	}
+	
+	public void runExample3(){
+		//TODO
+	}
+	
 	public void runAlgorithm() {
 		
 		highwayLength = slider_length.getValue();
 		velocity = slider_velocity.getValue();
+		aniSpeed = (int)slider_aniSpeed.getValue();
 		if (velocity == 0) runAlgo = false;
 		else runAlgo = true;
 		
@@ -966,7 +1050,7 @@ public class OCOHGUI extends JPanel {
 				
 				try {
 					
-					sleep(1000);
+					sleep(5000 / aniSpeed);
 			
 				} catch (InterruptedException e) {
 
