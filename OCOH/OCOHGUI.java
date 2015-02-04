@@ -15,11 +15,8 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -27,10 +24,11 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JSlider;
 import javax.swing.ToolTipManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import anja.swinggui.JRepeatButton;
 
@@ -41,6 +39,7 @@ public class OCOHGUI extends JPanel {
 	private boolean animationActive = false;
 	private boolean button_next_clicked = false;
 	private boolean button_prev_clicked = false;
+	private boolean runAlgo = true;
 	
 	// GUI elements
 	
@@ -73,9 +72,10 @@ public class OCOHGUI extends JPanel {
 	JLabel label_xyCoord = new JLabel();
 	JLabel step = new JLabel(" ");
 
-	// Textfields
-	private JTextField text_length = new JTextField("100");
-	private JTextField text_velocity = new JTextField("2");
+	// Sliders
+	
+	private JSlider slider_length = new JSlider(JSlider.HORIZONTAL, 50, 200, 100);
+	private JSlider slider_velocity = new JSlider(JSlider.HORIZONTAL, 0, 50, 10);
 	
 	// Buttons
 	JButton button_prev = new JButton("\u25c4");
@@ -87,9 +87,6 @@ public class OCOHGUI extends JPanel {
 	
 	// Checkbox
 	JCheckBox checkBox_fixedLength = new JCheckBox("fixed");
-	JCheckBox checkBox_showBalls = new JCheckBox("Balls");
-	JCheckBox checkBox_showFacility = new JCheckBox("Facility");
-	JCheckBox checkBox_showHighway = new JCheckBox("Highway");
 	JCheckBox checkBox_showCustomers = new JCheckBox("Customers");
 	JCheckBox checkBox_showSolution = new JCheckBox("Solution");
 
@@ -148,9 +145,11 @@ public class OCOHGUI extends JPanel {
 	
 	public void constrainButtons(){
 		
-		if (stepCounter >= 0){
+		if (stepCounter > 0){
 			button_prev.setEnabled(true);
-		} else button_prev.setEnabled(false);
+		} else {
+			button_prev.setEnabled(false);
+		}
 	
 		if (algorithm.set_withoutTurnpike != null){
 			if (stepCounter < algorithm.set_withoutTurnpike.size()-1){
@@ -179,19 +178,7 @@ public class OCOHGUI extends JPanel {
 			button_prev.setEnabled(false);
 			button_next.setEnabled(false);
 			checkBox_showSolution.setSelected(true);
-			checkBox_showBalls.setSelected(true);
-			checkBox_showCustomers.setSelected(true);
-			checkBox_showFacility.setSelected(true);
-			checkBox_showHighway.setSelected(true);
-		}
-		
-		if (checkBox_showSolution.isSelected()){
-
-			checkBox_showBalls.setSelected(true);
-			checkBox_showCustomers.setSelected(true);
-			checkBox_showFacility.setSelected(true);
-			checkBox_showHighway.setSelected(true);
-			
+			checkBox_showCustomers.setSelected(false);
 		}
 		
 	}
@@ -232,12 +219,6 @@ public class OCOHGUI extends JPanel {
 		label_length.setFont(font_default);
 		panel_west.add(label_length, gbc);
 
-		// textfield for length
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.gridy = 5;
-		text_length.setToolTipText("Change length of highway");
-		panel_west.add(text_length, gbc);
-
 		// Checkbox for length
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.gridy = 4;
@@ -245,7 +226,16 @@ public class OCOHGUI extends JPanel {
 		if (checkBox_fixedLength.isSelected()) checkBox_fixedLength.setToolTipText("Make length variable");
 		else checkBox_fixedLength.setToolTipText("Make length invariable");
 		panel_west.add(checkBox_fixedLength, gbc);
-
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.gridy = 5;
+		slider_length.setPreferredSize(new Dimension(140,50));
+		slider_length.setMajorTickSpacing(50);
+		slider_length.setMinorTickSpacing(25);
+		slider_length.setPaintTicks(true);
+		slider_length.setPaintLabels(true);
+		slider_length.setFont(font_default);
+		panel_west.add(slider_length, gbc);
+		
 		// Label "Velocity"
 		gbc.gridy = 6;
 		label_velocity.setFont(font_default);
@@ -254,9 +244,13 @@ public class OCOHGUI extends JPanel {
 		// textfield for velocity
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridy = 7;
-		text_velocity.setFont(font_default);
-		text_velocity.setToolTipText("Change velocity of highway");
-		panel_west.add(text_velocity, gbc);
+		slider_velocity.setPreferredSize(new Dimension(120,50));
+		slider_velocity.setMajorTickSpacing(25);
+		slider_velocity.setMinorTickSpacing(5);
+		slider_velocity.setPaintTicks(true);
+		slider_velocity.setPaintLabels(true);
+		slider_velocity.setFont(font_default);
+		panel_west.add(slider_velocity, gbc);
 
 		gbc.gridy = 8;
 		panel_west.add(new JLabel(""), gbc);
@@ -316,17 +310,7 @@ public class OCOHGUI extends JPanel {
 		checkBox_showSolution.setFont(font_default);
 		panel_west.add(checkBox_showSolution, gbc);
 		gbc.gridy = 18;
-		checkBox_showFacility.setFont(font_default);
-		panel_west.add(checkBox_showFacility, gbc);
-		gbc.gridy = 19;
-		checkBox_showHighway.setFont(font_default);
-		panel_west.add(checkBox_showHighway, gbc);
-		gbc.gridy = 20;
-		checkBox_showBalls.setFont(font_default);
-		panel_west.add(checkBox_showBalls, gbc);
-		
-
-		
+	
 	}
 	
 	public void createScreenPanel(){
@@ -409,6 +393,10 @@ public class OCOHGUI extends JPanel {
 
 		// Register the listeners
 		
+		slider_length.addChangeListener(new SliderListener());
+		
+		slider_velocity.addChangeListener(new SliderListener());
+		
 		checkBox_showSolution.addActionListener(new ActionListener(){
 
 			@Override
@@ -427,83 +415,6 @@ public class OCOHGUI extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 
 				repaint();
-				
-			}
-		});
-		
-		text_length.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-			}
-		});
-		
-		text_length.addKeyListener(new KeyAdapter() {
-			
-			public void keyTyped(KeyEvent e) {
-				
-				char c = e.getKeyChar();
-			    if ( ((c < '0') || (c > '9')) && c != KeyEvent.VK_BACK_SPACE) {
-			    
-			    	e.consume();  // ignore event
-			    
-			    }
-			    
-			}
-			
-			public void keyPressed(KeyEvent e) {
-
-				keyTyped(e);
-				if(e.getKeyCode() == KeyEvent.VK_ENTER){
-			    	try{
-						highwayLength = Integer.parseInt(text_length.getText());
-					}
-					catch(NumberFormatException ex){
-						JOptionPane.showMessageDialog(null, "Empty input. Please enter highwaylength.", "Warning", JOptionPane.WARNING_MESSAGE);
-						highwayLength = 100;
-						text_length.setText("100");
-					}
-	            }
-				
-			}
-			
-		});
-		
-		text_velocity.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-			}
-		});
-		
-		text_velocity.addKeyListener(new KeyAdapter() {
-			
-			public void keyTyped(KeyEvent e) {
-			
-				char c = e.getKeyChar();
-			    if ( ((c < '0') || (c > '9')) && c != KeyEvent.VK_BACK_SPACE) {
-			    
-			    	e.consume();  // ignore event
-			    
-			    }    
-			
-			}
-			
-			public void keyPressed(KeyEvent e) {
-
-				keyTyped(e);
-				if(e.getKeyCode() == KeyEvent.VK_ENTER){
-			    	try{
-						velocity = Integer.parseInt(text_velocity.getText());
-					}
-					catch(NumberFormatException ex){
-						JOptionPane.showMessageDialog(null, "Empty input. Please enter velocity.", "Warning", JOptionPane.WARNING_MESSAGE);
-						velocity = 2;
-						text_velocity.setText("2");
-					}
-	            }
 				
 			}
 		});
@@ -569,9 +480,11 @@ public class OCOHGUI extends JPanel {
 
 	public void clear() {
 		
+		animationActive = false;
 		customersList.clear();
 		// algorithm.clear();
 		defaultButtonSettings();
+		constrainButtons();
 		stepCounter = 0;
 		repaint();
 		
@@ -613,13 +526,13 @@ public class OCOHGUI extends JPanel {
 	
 	public void leftMouseClick(Point p) {
 
-		if (!pointAlreadyExists(p) && checkBox_showCustomers.isSelected()) {
+		if (!pointAlreadyExists(p) && (checkBox_showCustomers.isSelected() || checkBox_showSolution.isSelected())) {
 			
 			addPoint(p);
 		
 		} else {
 
-			if (customersList.contains(p) && checkBox_showCustomers.isSelected()) {
+			if (customersList.contains(p) && (checkBox_showCustomers.isSelected() || checkBox_showSolution.isSelected())) {
 				
 				dragged = customersList.search(p);
 			
@@ -640,7 +553,6 @@ public class OCOHGUI extends JPanel {
 		
 		step.setText("optimal location of turnpike");
 		int index = algorithm.solutionIndex;
-		stepCounter = index;
 		drawBalls(index);
 		drawPartition(index);
 		drawTurnpikePos(index);
@@ -835,48 +747,31 @@ public class OCOHGUI extends JPanel {
 
 		if (!customersList.isEmpty()) {
 			runAlgorithm();
-			if (algorithm.set_withoutTurnpike != null){
-				if (algorithm.set_withoutTurnpike.size() > 0) {
-					if (animationActive){
-						
-						step.setText("running animation...");
-						
-//						drawCenters(stepCounter);
-						drawBalls(stepCounter);
-						drawPartition(stepCounter);
-						drawTurnpikePos(stepCounter);
-					} else if (button_next_clicked || button_prev_clicked){
-						drawBalls(stepCounter);
-						drawPartition(stepCounter);
-						drawTurnpikePos(stepCounter);
-//						button_next_clicked = false;
-//						button_prev_clicked = false;
-					}
-
-					
-					else if (checkBox_showSolution.isSelected()) {
-						drawSolution();
-					} else {
-						step.setText(" ");
-						if (checkBox_showBalls.isSelected()){
+			if (runAlgo){
+				if (algorithm.set_withoutTurnpike != null){
+					if (algorithm.set_withoutTurnpike.size() > 0) {
+						if (animationActive && stepCounter > -1){
 							drawBalls(stepCounter);
-						} 
-						if (checkBox_showFacility.isSelected()){
-
-							step.setText("location of turnpike for current partition");
+							drawPartition(stepCounter);
 							drawTurnpikePos(stepCounter);
-						}
-						if (checkBox_showHighway.isSelected()){
-
-							step.setText("location of turnpike for current partition");
+						} else if (button_next_clicked || button_prev_clicked){
+							drawBalls(stepCounter);
+							drawPartition(stepCounter);
 							drawTurnpikePos(stepCounter);
+	//						button_next_clicked = false;
+	//						button_prev_clicked = false;
 						}
-						if (checkBox_showCustomers.isSelected()){
+						else if (checkBox_showSolution.isSelected()) {
 							customersList.draw(g);
+							drawSolution();
+						} 
+						else if (checkBox_showCustomers.isSelected()){
+								step.setText("Customer locations");
+								customersList.draw(g);
 						}
+						
+						
 					}
-					
-					
 				}
 			}
 		}
@@ -1035,23 +930,16 @@ public class OCOHGUI extends JPanel {
 	}
 	
 	public void runAlgorithm() {
-			
-			try{
-				
-				highwayLength = Integer.parseInt(text_length.getText());
-				velocity = Integer.parseInt(text_velocity.getText());
-				algorithm.runAlgorithm(customersList, highwayLength, velocity);
-				repaint();
-				
-			} catch(NumberFormatException e){
-				
-				JOptionPane.showMessageDialog(null,
-					    "Invalid Input!",
-					    "Error",
-					    JOptionPane.ERROR_MESSAGE);
-			
-			}
-			
+		
+		highwayLength = slider_length.getValue();
+		velocity = slider_velocity.getValue();
+		if (velocity == 0) runAlgo = false;
+		else runAlgo = true;
+		
+		if (runAlgo){
+			algorithm.runAlgorithm(customersList, highwayLength, velocity);
+			repaint();
+		}
 		
 	}
 	
@@ -1060,10 +948,22 @@ public class OCOHGUI extends JPanel {
 		public void run(){
 			
 			animationActive = true;
-			
-			while(stepCounter < algorithm.set_withoutTurnpike.size()-1){
+
+			try {
 				
-				stepCounter ++;
+				sleep(1000);
+		
+			} catch (InterruptedException e) {
+
+				e.printStackTrace();
+			}
+			
+			while(stepCounter < algorithm.set_withoutTurnpike.size()){
+				
+				
+				int i = stepCounter + 1;
+				step.setText("Step: " + i + " of " + algorithm.set_withoutTurnpike.size());
+				
 				try {
 					
 					sleep(1000);
@@ -1074,6 +974,9 @@ public class OCOHGUI extends JPanel {
 				}
 				
 				repaint();
+				
+				stepCounter ++;
+				
 			}
 			
 			animationActive = false;
@@ -1083,5 +986,19 @@ public class OCOHGUI extends JPanel {
 		}
 		
 	}
+	
+	class SliderListener implements ChangeListener{
+
+		@Override
+		public void stateChanged(ChangeEvent e) {
+		
+			
+		}
+		
+	}
+	
+
+	
+	
 
 }
