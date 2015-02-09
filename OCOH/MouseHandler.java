@@ -1,31 +1,52 @@
 package OCOH;
 
-
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 
+/**
+ * Provides the MouseHandler class for OCOHGUI supporting OCOHAlgorithm.
+ * @author Ramtin Azimi, Sally Chau
+ *
+ */
+
 public class MouseHandler extends MouseAdapter{
 
+	//**************************************************************************
+	// Variables
+	//**************************************************************************
+		
 	OCOHGUI panel;
-	
-	private static MouseHandler mouseHandler;
+	private static MouseHandler _mouseHandler;
 
+	//**************************************************************************
+	// Constructors
+	//**************************************************************************
+		
 	private MouseHandler(OCOHGUI panel) {
 		this.panel = panel;
 	}
 
+	//**************************************************************************
+	// Getter
+	//**************************************************************************
+		
 	public static MouseHandler getMouseHandler(OCOHGUI panel) {
 
-		if (mouseHandler == null) {
-			mouseHandler = new MouseHandler(panel);
+		if (_mouseHandler == null) {
+			_mouseHandler = new MouseHandler(panel);
 		}
-		return mouseHandler;
+		return _mouseHandler;
 	}
 	
 	public static MouseHandler getMouse(){
-		return mouseHandler;
+		return _mouseHandler;
 	}
+	
+	//**************************************************************************
+	// Mouse Event Methods
+	//**************************************************************************
+		
 	@Override
 	public void mousePressed(MouseEvent e) {
 		
@@ -52,10 +73,7 @@ public class MouseHandler extends MouseAdapter{
         
 	}
 	
-	
 	public void mouseDragged(MouseEvent e) {
-		
-		//System.err.println("MOUSE DRAGGED:"+e.getX()+" "+e.getY());
 
 		if(mouseInScreen(e)){
 			Point p = new Point(e.getX(), e.getY());
@@ -72,6 +90,14 @@ public class MouseHandler extends MouseAdapter{
 		panel.setXYLabel(p);
 		
 	}
+	
+	/**
+	 * Checks whether the mouse is within the space of the panel which displays the 
+	 * OCOH Algorithm.
+	 * @param e
+	 * @return
+	 * 		true, if the mouse coordinates are within the right panel.
+	 */
 	public boolean mouseInScreen(MouseEvent e){
 		
 		int[] coordinates = panel.getScreenCoordinates();
@@ -88,4 +114,5 @@ public class MouseHandler extends MouseAdapter{
 		}
 		return true;
 	}
+
 }

@@ -5,7 +5,7 @@ import anja.swinggui.StartButtonApplet;
 /**
  * This applet provides the start button that will start the application
  * 
- * @author Ramtin Azimi
+ * @author Sally Chau
  */
 
 public class Applet extends StartButtonApplet {
@@ -14,7 +14,7 @@ public class Applet extends StartButtonApplet {
 	/**
 	 * Starts the applet.
 	 * 
-	 * @see appsStandAlone.BRNN.BRNN
+	 * 
 	 */
 	public Applet() {
 		super("Start the algorithm!");

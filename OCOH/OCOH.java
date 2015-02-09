@@ -4,6 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import javax.swing.JFrame;
 
+/**
+ * 
+ * @author Sally Chau
+ *
+ */
 
 public class OCOH{
 

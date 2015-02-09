@@ -5,53 +5,105 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Provides the algorithm to solve the 1-Center and 1-Highway Problem
+ * focussed on the 1-Center and 1-Turnpike problem. 
+ * Input: Set of demand points S, length of turnpike, velocity of turnpike
+ * Output: Optimal location of facility point f and the turnpike
+ * 
+ * Given a set of points S and a velocity v > 1, we are interested in locating
+ * the facility point f and the highway h (turnpike) that minimizes the maximum
+ * time needed to travel from a point p in S to f. We consider the highwaylength l 
+ * to be fixed.
+ * 
+ * Implemented in the context of the Project Group "Computational Geometry" at the 
+ * University of Bonn, 24.02.2015.
+ * 
+ * @author Sally Chau
+ * 
+ */
 public class OCOHAlgorithm {
 
-		public List<PointList> set_withoutTurnpike; // doesnt use turnpike, f 
-		public List<PointList> set_withTurnpike; // uses turnpike, t
-		public List<Point[]> extremePoints1;
-		public List<Point[]> extremePoints2;
-		public List<PointList> list_centersWithoutTurnpike; // set of points resulting from center()
-		public List<PointList> list_centersWithTurnpike;
-		public List<Point> minDist1; // minDistPoints
-		public List<Point> minDist2;
-		public List<Point> maxDist1; // maxDistPoints
-		public List<Point> maxDist2;
+	//**************************************************************************
+	// Public Variables 
+	// (mainly for the purpose of drawing)
+	//**************************************************************************
+	
+	public List<PointList> set_withTurnpike; // t 
+	public List<PointList> set_withoutTurnpike; // f
+	public List<Point[]> extremePoints1;
+	public List<Point[]> extremePoints2;
+	
+	// set of points resulting from center()
+	public List<PointList> list_centersWithoutTurnpike; 
+	public List<PointList> list_centersWithTurnpike;
+	
+	// minDistPoints
+	public List<Point> minDist1; 
+	public List<Point> minDist2;
+	
+	// maxDistPoints
+	public List<Point> maxDist1; 
+	public List<Point> maxDist2;
+	
+	// variables describing the optimal location for the turnpike and the facility
+	public int solutionIndex;
+	public Point solution_facility;
+	public Point solution_turnpikeStart;
+	public double solution_radius;
+	
+	// variables describing all basic problem solutions for all partitions {W,H}
+	public List<Point> facilityPoints;
+	public List<Point> turnpikePoints;
+	public List<Double> partitionRadius;
+
+	//**************************************************************************
+	// Private Variables
+	//**************************************************************************
+	
+	// auxiliary variables
+	private Point _currentFacility = new Point(); // turnpike endpoint 
+	private Point _currentTurnpikeStart = new Point();
+	private double _currentRadius = 0;
+	private double _prevY = 0;
+	private double _eps1, _eps2, _x = 0;
+	private double _maxDist;
+	
+	// properties of turnpike to be located
+	private int _highwayLength;
+	private int _velocity;
 		
-		public int solutionIndex;
-		public Point solution_facility;
-		public Point solution_turnpikeStart;
-		public double solution_radius;
-		
-		List<Point> facilityPoints;
-		List<Point> turnpikePoints;
-		List<Double> partitionRadius;
-		
-		private Point currentFacility = new Point(); // turnpike endpoint 
-		private Point currentTurnpikeStart = new Point();
-		double currentRadius = 0;
-		
-		private double prevY = 0;
-		private double eps1, eps2, x = 0;
-		private double maxDist;
-		
-		int highwayLength;
-		int velocity;
-		
+	//**************************************************************************
+	// Public Methods
+	//**************************************************************************
+	
+	/**
+	 * Starts the algorithm for solving the 1-Center and 1-Highway problem 
+	 * for the version of locating a turnpike with fixed length. 
+	 * This algorithm is solved in O(n^2) time.	
+	 * 
+	 * @param customers
+	 * 			List of points (customers) 
+	 * @param highwayLength
+	 * 			Length of highway that should be located
+	 * @param velocity
+	 * 			Speed of highway that should be located: 
+	 * 			The highway increases the transportation speed between any demand point and the facility.
+	 */
 	public void runAlgorithm(PointList customers, int highwayLength, int velocity) {
 		
 		if (!customers.isEmpty()){
-			this.highwayLength = highwayLength;
-			this.velocity = velocity;
-			maxDist = customers.maxDist();
+			this._highwayLength = highwayLength;
+			this._velocity = velocity;
+			_maxDist = customers.maxDist();
 			
 			// for drawing purposes only
 			facilityPoints = new ArrayList<Point>();
 			turnpikePoints = new ArrayList<Point>();
 			partitionRadius = new ArrayList<Double>();
 			
-			set_withoutTurnpike = new ArrayList<PointList>();
 			set_withTurnpike = new ArrayList<PointList>();
+			set_withoutTurnpike = new ArrayList<PointList>();
 			extremePoints1 = new ArrayList<Point[]>();
 			extremePoints2 = new ArrayList<Point[]>();
 			list_centersWithoutTurnpike = new ArrayList<PointList>();
@@ -65,28 +117,28 @@ public class OCOHAlgorithm {
 			minDist2 = new ArrayList<Point>();
 			
 			// compute extreme points
-			for (PointList p : set_withoutTurnpike){
+			for (PointList p : set_withTurnpike){
 				extremePoints1.add(p.getExtremePoints());
 			}
-			for (PointList p : set_withTurnpike){
+			for (PointList p : set_withoutTurnpike){
 				extremePoints2.add(p.getExtremePoints());
 			}
 			
 			// solve basic problem for all partitions {W,H}
-			for (int i = 0; i < set_withoutTurnpike.size(); i++){
+			for (int i = 0; i < set_withTurnpike.size(); i++){
 
-				eps1 = Math.max(0, set_withoutTurnpike.get(i).delta() + highwayLength/velocity - set_withTurnpike.get(i).delta());
-				eps2 = Math.max(0, set_withTurnpike.get(i).delta() - set_withoutTurnpike.get(i).delta() - highwayLength/velocity);
+				_eps1 = Math.max(0, set_withTurnpike.get(i).delta() + highwayLength/velocity - set_withoutTurnpike.get(i).delta());
+				_eps2 = Math.max(0, set_withoutTurnpike.get(i).delta() - set_withTurnpike.get(i).delta() - highwayLength/velocity);
 
-				solveBP(set_withoutTurnpike.get(i), set_withTurnpike.get(i)); 
-				facilityPoints.add(currentFacility);
-				turnpikePoints.add(currentTurnpikeStart);
-				partitionRadius.add(currentRadius);
+				solveBP(set_withTurnpike.get(i), set_withoutTurnpike.get(i)); 
+				facilityPoints.add(_currentFacility);
+				turnpikePoints.add(_currentTurnpikeStart);
+				partitionRadius.add(_currentRadius);
 				
 				// for drawing purposes
 				// fixed length
-				list_centersWithoutTurnpike.add(center(set_withoutTurnpike.get(i), set_withoutTurnpike.get(i).delta() + eps2 + x));
-				list_centersWithTurnpike.add(center(set_withTurnpike.get(i), set_withTurnpike.get(i).delta() + eps1 + x));
+				list_centersWithoutTurnpike.add(center(set_withTurnpike.get(i), set_withTurnpike.get(i).delta() + _eps2 + _x));
+				list_centersWithTurnpike.add(center(set_withoutTurnpike.get(i), set_withoutTurnpike.get(i).delta() + _eps1 + _x));
 				
 				if (list_centersWithoutTurnpike.get(i).objectContains(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0])){
 					minDist1.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0]); 
@@ -107,105 +159,31 @@ public class OCOHAlgorithm {
 //				solution_radius = partitionRadius.get(solutionIndex);
 			}
 			
-//			System.out.println("F: "+currentFacility.toString() + " T: " + currentTurnpikeStart);
-//			System.out.println("Distance: " + Math.sqrt(currentFacility.distanceSquaredTo(currentTurnpikeStart)));
-//			System.out.println("Radius: " + currentRadius);
-			
 		}
 	}
 	
-	private int getMinRadiusIndex(){
-		
-		double minRadius = Double.POSITIVE_INFINITY;
-		int radiusIndex = 0;
-		
-		for (double radius : partitionRadius){
-			if (radius < minRadius) {
-				minRadius = radius;
-				radiusIndex = partitionRadius.indexOf(minRadius);
-			}
-		}
-		
-		return radiusIndex;
-		
-	}
-
+	//**************************************************************************
+	// Private Methods
+	//**************************************************************************
+	
 	/**
-	 * Computes the smallest radius needed to place a turnpike 
-	 * of length highwayLength as an input for the method 
-	 * @see{OCOH.OCOHAlgorithm.center(PointList T, double radius)}.
-	 * This method uses binary search to find the smallest radius 
-	 * in time O(log n).
-	 * 
+	 * Solves the Basic Problem for two lists of points in constant time.
+	 * Basic Problem: Given a partition {W,H} of S, find the smallest value R (called the radius of the partition)
+	 * and the coordinates of f and t such that W \subseq B(f,R) and H \subseq B(t, R-l/v). When we consider
+	 * the fixed-length variation of the problem, we also add the constraint that f and t must satisfy ||f-t||_2 = l.
 	 * @param list1
-	 * 			List of Points 
 	 * @param list2
-	 * 			List of Points
-	 * @param m
-	 * 			lower bound
-	 * @param M
-	 * 			upper bound
-	 * @return
-	 * 			the minimum radius needed to place a turnpike
 	 */
-	public double getBPradius(PointList list1, PointList list2, double m, double M){
+	private void solveBP(PointList list1, PointList list2){
+		double e1 = Math.max(0, list1.delta() + _highwayLength/_velocity - list2.delta());
+		double e2 = Math.max(0, list2.delta() - list1.delta() - _highwayLength/_velocity);
 		
-		double y = (m+M)/2;
+		_x = getBPradius(list1, list2, 0, _maxDist);
 		
-		double e1 = Math.max(0, list1.delta() + highwayLength/velocity - list2.delta());
-		double e2 = Math.max(0, list2.delta() - list1.delta() - highwayLength/velocity);
+		PointList centers1 = center(list1, list1.delta() + e2 + _x); // Center(H, d(H)+e2+x), t
+		PointList centers2 = center(list2, list2.delta() + e1 + _x); // Center(W, d(W)+e1+x), f
 		
-		PointList centers1 = center(list1, list1.delta() + e2 + y); // Center(H, d(H)+e2+x)
-		PointList centers2 = center(list2, list2.delta() + e1 + y); // Center(W, d(W)+e1+x)
-		
-		// find maximum distance between centers1 and centers2
-		double maxDist = centers1.objectMaxDist(centers2);
-		
-		// find minimum distance between centers1 and centers2
-		double minDist = centers1.objectMinDist(centers2);
-		
-		if ((int)Math.abs(prevY - y) == 0){
-			return prevY;
-		}
-		if (maxDist >= highwayLength && minDist <= highwayLength){
-			prevY = y;
-			if ((int)Math.abs(M-m) == 0){
-				return y;
-			} else return getBPradius(list1, list2, m, y);
-		} else {
-			return getBPradius(list1, list2, y, M);
-		}
-		
-	}
-	
-	private void setCurrentTurnpike(Point t){
-		
-		currentTurnpikeStart = t;
-	
-	}
-	
-	private void setCurrentFacility(Point f){
-		
-		currentFacility = f;
-	
-	}
-	
-	private void setCurrentRadius(double r){
-		
-		currentRadius = r;
-		
-	}
-	
-	public void solveBP(PointList list1, PointList list2){
-		double e1 = Math.max(0, list1.delta() + highwayLength/velocity - list2.delta());
-		double e2 = Math.max(0, list2.delta() - list1.delta() - highwayLength/velocity);
-		
-		x = getBPradius(list1, list2, 0, maxDist);
-		
-		PointList centers1 = center(list1, list1.delta() + e2 + x); // Center(H, d(H)+e2+x), t
-		PointList centers2 = center(list2, list2.delta() + e1 + x); // Center(W, d(W)+e1+x), f
-		
-		double radius = Math.max(list1.delta() + e2 + x, list2.delta() + e1 + x);
+		double radius = Math.max(list1.delta() + e2 + _x, list2.delta() + e1 + _x);
 		
 		Point l1Start = new Point();
 		Point l1End = new Point();
@@ -245,11 +223,77 @@ public class OCOHAlgorithm {
 		setCurrentRadius(radius);
 		 
 	}
+
+	/**
+	 * Computes the smallest radius needed to place a turnpike 
+	 * of length highwayLength as an input for the method 
+	 * OCOH.OCOHAlgorithm.center(PointList T, double radius).
+	 * This method uses binary search to find the smallest radius 
+	 * in time O(log n).
+	 * 
+	 * @param list1
+	 * 			List of Points 
+	 * @param list2
+	 * 			List of Points
+	 * @param m
+	 * 			lower bound
+	 * @param M
+	 * 			upper bound
+	 * @return
+	 * 			the minimum radius needed to place a turnpike
+	 */
+	private double getBPradius(PointList list1, PointList list2, double m, double M){
+		
+		double y = (m+M)/2;
+		
+		double e1 = Math.max(0, list1.delta() + _highwayLength/_velocity - list2.delta());
+		double e2 = Math.max(0, list2.delta() - list1.delta() - _highwayLength/_velocity);
+		
+		PointList centers1 = center(list1, list1.delta() + e2 + y); // Center(H, d(H)+e2+x)
+		PointList centers2 = center(list2, list2.delta() + e1 + y); // Center(W, d(W)+e1+x)
+		
+		// find maximum distance between centers1 and centers2
+		double maxDist = centers1.objectMaxDist(centers2);
+		
+		// find minimum distance between centers1 and centers2
+		double minDist = centers1.objectMinDist(centers2);
+		
+		if ((int)Math.abs(_prevY - y) == 0){
+			return _prevY;
+		}
+		if (maxDist >= _highwayLength && minDist <= _highwayLength){
+			_prevY = y;
+			if ((int)Math.abs(M-m) == 0){
+				return y;
+			} else return getBPradius(list1, list2, m, y);
+		} else {
+			return getBPradius(list1, list2, y, M);
+		}
+		
+	}
 	
-	public double getParam(Point p1, Point p2, double[] v1, double[] v2){
+	/**
+	 * Having found the correct size of balls and the sets of center points 
+	 * where those balls can be located, we need to fulfill the constraint 
+	 * for the fixed-length case that ||f-t||_2 = l.
+	 * To find f and t, we parameterize the path between the minimum distance 
+	 * and maximum distance points.
+	 * Then we take the Euclidean distance and set it equal to l. 
+	 * The next step is to find the needed parameter for points f and t 
+	 * to have distance l.
+	 * @param p1
+	 * @param p2
+	 * @param v1
+	 * 		direction vector from minimum distance point to maximum distance point for the first path
+	 * @param v2
+	 * 		direction vector from minimum distance point to maximum distance point for the second path
+	 * @return
+	 * 		parameter for points f and t such that they have Euclidean distance l
+	 */
+	private double getParam(Point p1, Point p2, double[] v1, double[] v2){
 		double r;
 		
-		double l = highwayLength;
+		double l = _highwayLength;
 		
 		// auxiliary variables
 		double A = (Math.pow(v1[0] - v2[0], 2.0)) + (Math.pow(v1[1] - v2[1], 2.0));
@@ -268,10 +312,49 @@ public class OCOHAlgorithm {
 		return r;
 	}
 	
-	public PointList center(PointList T, double radius){
-			
-		// returns centers: locus of the centers of the axis-parallel squares of radius r that cover T
-		// center(T,r) = center(extreme(T),r)
+	/**
+	 * After solving the Basic Problem for all partitions {W,H}
+	 * we need to find the one solution with the smallest radius.
+	 * @return smallest radius of all Basic problem solutions
+	 */
+	private int getMinRadiusIndex(){
+		
+		double minRadius = Double.POSITIVE_INFINITY;
+		int radiusIndex = 0;
+		
+		for (double radius : partitionRadius){
+			if (radius < minRadius) {
+				minRadius = radius;
+				radiusIndex = partitionRadius.indexOf(minRadius);
+			}
+		}
+		
+		return radiusIndex;
+		
+	}
+
+	/**
+	 * Calculates the locus of the centers of the axis-parallel squares (L_infty balls) 
+	 * of radius r that cover T.
+	 * We have:
+	 * - center(T,r) = center(extreme(T),r)
+	 * - center(T,r) can be empty, a point, an axis-parallel segment, or a rectangle
+	 * - center(T,r) is empty iff r  delta(T).
+	 * @param T
+	 * 		set of points
+	 * @param radius
+	 * 		radius of the ball that should cover all points of T
+	 * @return
+	 * 		end points of the object containing all locus of centers. Therefore the PoinList object can contain
+	 * 		0, 1, 2 or 4 points which define the object.
+	 * 		If centers is a rectangle, the vertex points are returned in the following way:
+	 * 		0----2
+	 * 		|    |
+	 * 		|    |
+	 * 		1----3
+	 *
+	 */
+	private PointList center(PointList T, double radius){
 		
 		PointList centers = new PointList(Color.PINK);
 		Point[] extrema = new Point[4];
@@ -300,8 +383,6 @@ public class OCOHAlgorithm {
 		} else {
 			// we can move in x direction
 			xLength = Math.abs(currentCenter.posX + radius - extrema[1].posX);
-//			xStart = currentCenter.posX - xLength;
-//			xEnd = currentCenter.posX + xLength;
 			xStart = currentCenter.posX - xLength;
 			xEnd = currentCenter.posX;
 		}
@@ -315,19 +396,10 @@ public class OCOHAlgorithm {
 		} else {
 			// we can move in y direction
 			yLength = Math.abs(currentCenter.posY + radius - extrema[3].posY);
-//			yStart = currentCenter.posY - yLength;
-//			yEnd = currentCenter.posY + yLength;
 			yStart = currentCenter.posY - yLength;
 			yEnd = currentCenter.posY;
 		}
 		
-		// points of centers
-		/*
-		 * 0----2
-		 * |    |
-		 * |    |
-		 * 1----3
-		 */
 		centers.addPoint(new Point(xStart, yStart));
 		if (!centers.contains(new Point(xStart, yEnd))){
 			centers.addPoint(new Point(xStart, yEnd));
@@ -339,19 +411,33 @@ public class OCOHAlgorithm {
 			centers.addPoint(new Point(xEnd, yEnd));
 		}
 		
-
 		return centers;
 	
 	}
 	
-	public void getPartition(PointList customers){
+	/**
+	 * Splits the customer set S into sets W and H, 
+	 * such that they are either divided by an axis-aligned line or rectangle.
+	 * @param customers
+	 */
+	private void getPartition(PointList customers){
+		
 		splitByQuadrant(customers);
 		splitByLine(customers);
+		
 	}
 	
+	/**
+	 * Splits the customer set S into sets W and H, 
+	 * such that they are either divided by an axis-aligned rectangle.
+	 * Sweep: Let q1, q2, ..., qn be the points of S sorted in decreasing order of y 
+	 * coordinates. For any 1 < = i, j <= n, let UR_i,j and DL_i,j be the smallest bounding
+	 * rectangles of the sets UR_i,j := {u in S| y(u) > y(qi) && x(u) < x(pj)} and S\UR_i,j
+	 * respectively.
+	 * @param S
+	 */
 	private void splitByQuadrant(PointList S){
-
-	
+		
 		PointList[][] UR = new PointList[S.getSize()][S.getSize()];
 		PointList[][] DL = new PointList[S.getSize()][S.getSize()];
 		PointList Yincr = S;
@@ -381,10 +467,10 @@ public class OCOHAlgorithm {
 					} else {
 						DL[i][j].addPoint(S.points.get(u));
 					}
-					if (!contains(set_withoutTurnpike, UR[i][j]) && UR[i][j].getSize() > 0){
+					if (!contains(set_withTurnpike, UR[i][j]) && UR[i][j].getSize() > 0){
 						
-						set_withoutTurnpike.add(UR[i][j]);
-						set_withTurnpike.add(DL[i][j]);
+						set_withTurnpike.add(UR[i][j]);
+						set_withoutTurnpike.add(DL[i][j]);
 					}
 				}
 			}
@@ -392,20 +478,21 @@ public class OCOHAlgorithm {
 		
 	}
 	
-	public boolean contains(List<PointList> list, PointList pList){
-	
-		for (PointList p : list){
-			if (p.equals(pList)) return true;
-		}
-		
-		return false;
-	}
-	
+	/**
+	 * Splits the customer set S into sets W and H, 
+	 * such that they are either divided by an axis-aligned line.
+	 * Sweep: Sort the points of S in increasing value of y coordinates; 
+	 * let p1, p2, ..., pn be the obtained order. For any 1 <= i < n,
+	 * let L_i and R_i be the smallest bounding axis-aligned rectangle containing 
+	 * points {p1, ..., pi} and {pi+1,...,pn}, respectively.
+	 * The computationally most expensive part of the algorithm is computing the 
+	 * initial sorting of the points of S, which needs O(n log n) time. 
+	 * @param S
+	 */
 	private void splitByLine(PointList S){
 
 		PointList[] L = new PointList[S.getSize()-1];
 		PointList[] R = new PointList[S.getSize()-1];
-		// case a) and b)
 
 		// initialize all point lists
 		for (int i = 0; i < S.getSize()-1; i++){
@@ -423,10 +510,68 @@ public class OCOHAlgorithm {
 				R[i].addPoint(S.points.get(j));
 			}
 
-			set_withoutTurnpike.add(L[i]);
-			set_withTurnpike.add(R[i]);
+			set_withTurnpike.add(L[i]);
+			set_withoutTurnpike.add(R[i]);
 
 		}
+		
+	}
+
+	//**************************************************************************
+	// Booleans
+	//**************************************************************************
+	
+	/**
+	 * Checks whether a point p is contained in a list.
+	 * @param list
+	 * @param pList
+	 * @return
+	 * 		true, if p is contained in list;
+	 * 		false, if p is not contained in list.
+	 */
+	private boolean contains(List<PointList> list, PointList pList){
+	
+		for (PointList p : list){
+			if (p.equals(pList)) return true;
+		}
+		
+		return false;
+	}
+	
+	//**************************************************************************
+	// Setters
+	//**************************************************************************
+	
+	/**
+	 * Sets the current turnpike startpoint for the currently solved Basic problem.
+	 * @param t
+	 * 		location of the turnpike startpoint
+	 */
+	private void setCurrentTurnpike(Point t){
+		
+		_currentTurnpikeStart = t;
+	
+	}
+	
+	/**
+	 * Sets the current facility point for the currently solved Basic problem.
+	 * @param f
+	 * 		location of the facility point
+	 */		
+	private void setCurrentFacility(Point f){
+		
+		_currentFacility = f;
+	
+	}
+	
+	/**
+	 * Sets the current radius of the balls for the currently solved Basic problem.
+	 * @param r
+	 * 		current radius
+	 */
+	private void setCurrentRadius(double r){
+		
+		_currentRadius = r;
 		
 	}
 	

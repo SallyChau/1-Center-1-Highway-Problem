@@ -10,42 +10,121 @@ import java.util.List;
 import anja.geom.Point2;
 import anja.geom.Rectangle2;
 import anja.geom.Segment2;
-
+/**
+ * 
+ * @author Ramtin Azimi, Sally Chau
+ *
+ */
 public class PointList {
 
-	private Color pointColor;
+	//**************************************************************************
+	// Variables
+	//**************************************************************************
+		
+	private Color _pointColor;
 	List<Point> points;
 
+	//**************************************************************************
+	// Constructors
+	//**************************************************************************
+	
+	/**
+	 * Creates a PointList object with color pointColor and a given list points.
+	 * @param pointColor
+	 * 		Color of all Point objects in the List points
+	 * @param points
+	 * 		List of Point objects
+	 */
 	public PointList(Color pointColor, List<Point> points) {
+		
 		this.points = points;
-		this.pointColor = pointColor;
+		this._pointColor = pointColor;
 		setPointsColor(pointColor);
+		
 	}
 	
-
+	/**
+	 * Creates a PointList object with given list points and sets all Point colors to black.
+	 * @param points
+	 */
 	public PointList(List<Point> points){
+		
 		this(Color.BLACK, points);
+	
 	}
 
+	/**
+	 * Creates a PointList object with color pointColor and an empty List of Points.
+	 * @param pointColor
+	 */
 	public PointList(Color pointColor) {
+		
 		this(pointColor, new ArrayList());
+	
 	}
 	
+	/**
+	 * Creates a PointList object with an empty List of Points and sets all Point objects' 
+	 * colors to black.
+	 */
 	public PointList(){
+		
 		this(Color.BLACK);
+	
 	}
 
+	//**************************************************************************
+	// Setter
+	//**************************************************************************
+	
+	/**
+	 * Sets new List of Points as points.
+	 * @param points
+	 * 		new List of Point objects
+	 */
 	public void setList(List<Point> points){
+		
 		this.points = points;
+	
 	}
 	
+	/**
+	 * Changes color of Point objects in points to color.
+	 * @param color
+	 * 		new color for all Point objects in points.
+	 */
 	public void setPointsColor(Color color){
 		
 		for(Point p: points){
 			p.setColor(color);
 		}
+		
+	}
+
+	//**************************************************************************
+	// Getter
+	//**************************************************************************
+	
+	/**
+	 * 
+	 * @return
+	 * 		number of Point objects in points
+	 */
+	public int getSize(){
+		return points.size();
 	}
 	
+	//**************************************************************************
+	// Boolean
+	//**************************************************************************
+	
+	/**
+	 * 
+	 * @param p
+	 * @return
+	 * 		True, if p lies within the circle of another point in the list points.
+	 * 		Else false.
+	 */
 	public boolean collisionExists(Point p){
 		
 		for (Point point : points) {
@@ -57,55 +136,245 @@ public class PointList {
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @param p
+	 * @return
+	 * 		True, if p is contained in list points. Else false.
+	 */
+	public boolean contains(Point p){
+		
+		return points.contains(p);
+		
+	}
+	
+	public boolean equals(Object o){
+		
+		if(o instanceof PointList){
+			
+			PointList pointsList = (PointList)o;
+			
+			for(Point p: pointsList.points){
+				
+				if(!points.contains(p)){
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 * 		True, if the List points does not contain any object.
+	 */
+	public boolean isEmpty(){
+		
+		int size = getSize();
+		if (size > 0) return false;
+		else return true;
+		
+	}
+	
+	//**************************************************************************
+	// Methods
+	//**************************************************************************
+	
+	/**
+	 * Adds Point p to List points.
+	 * @param p
+	 */
 	public void addPoint(Point p) {
 
-		p.setColor(pointColor);
+		p.setColor(_pointColor);
 		points.add(p);
 
 	}
-
-	public void setPointList() {
-
-	}
-
-	public boolean enoughPoints() {
-		
-		if(points.size()>=2){
-			return true;
-		}
-		
-		return false;
-	}
 	
+	/**
+	 * Removes Point p from List points.
+	 * @param p
+	 */
 	public void remove(Point p){
 		points.remove(p);
 	}
 	
+	/**
+	 * Removes all points from List points.
+	 */
 	public void clear(){
 		points.clear();
 	}
 	
-	public List<Point> getPoints(){
-		return points;
+	/**
+	 * 
+	 * @return
+	 * 		biggest distance between two points in List points
+	 */
+	public double maxDist(){
+		// returns max distance between two points in set S
+		double maxDist = Double.NEGATIVE_INFINITY;
+		List<Double> distances = new ArrayList<Double>();
+		for (int i = 0; i < points.size(); i++){
+			for (int j = 0; j < points.size(); j++){
+				distances.add(Math.sqrt(points.get(i).distanceSquaredTo(points.get(j))));
+			}
+		}
+
+		for (Double dist : distances){
+			if (dist > maxDist) maxDist = dist;
+		}
+		
+		return maxDist;
 	}
 	
+	/**
+	 * Find Point p in List points.
+	 * @param p
+	 * @return
+	 * 		If p is contained in List points, then p is returned.
+	 * 		Else null is returned. 
+	 */
+	public Point search(Point p){
+		
+		for(Point point: points){
+			if(point.equals(p)){
+				
+				return point; 
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Remove all points from List points.
+	 * @param p
+	 */
+	public void removeAll(Point p){
+		
+		for (Iterator<Point> iterator = points.iterator(); iterator.hasNext();) {
+		    Point point = iterator.next();
+		    if (point.equals(p)) {
+		        // Remove the current element from the iterator and the list.
+		        iterator.remove();
+		    }
+		}
+	}
+	
+	public String toString(){
+		return points.toString();
+	} 
+	
+	/**
+	 * 
+	 * @return
+	 * 		array of Point objects which contains the points with highest and lowest 
+	 * 		x and y coordinate of the list points
+	 */
+	public Point[] getExtremePoints(){
+		
+		Point[] extremePoints = new Point[4];
+		if (points.size() == 0) return extremePoints;
+		
+		//extreme points in X direction
+		Collections.sort(points, Point.COMPARE_BY_XCoord);
+		extremePoints[0] = points.get(0); // smallest X coordinate
+		extremePoints[1] = points.get(getSize()-1); // biggest X coordinate
+		
+		//extreme points in Y direction
+		Collections.sort(points, Point.COMPARE_BY_YCoord);
+		extremePoints[2] = points.get(0); // smallest Y coordinate
+		extremePoints[3] = points.get(getSize()-1); // biggest Y coordinate
+		
+		return extremePoints;
+	}
+	
+	/**
+	 * Calls the draw(g) method for all Point objects in points.
+	 * @param g
+	 */
 	public void draw(Graphics g){
 			
-		setPointsColor(pointColor);
+		setPointsColor(_pointColor);
 		for(Point p: points){
 			p.draw(g);
 			
 		}
 	}
 	
-	public int getSize(){
-		return points.size();
+	/**
+	 * 
+	 * @return
+	 * 		one half of the largest L_infty distance between any two points of List points.
+	 * 		That is, the minimum radius needed so that all points of points can be included in some
+	 * 		L_infty ball.
+	 */
+	public double delta(){
+		
+		double max = Double.NEGATIVE_INFINITY;
+		for (Point p : points){
+			for (Point q : points){
+				if (p.inftyDistanceTo(q) > max){
+					max = p.inftyDistanceTo(q);
+				}
+			}
+		}
+		
+		return (0.5 * max);
 	}
 	
-	public boolean contains(Point p){
-		return points.contains(p);
+	//**************************************************************************
+	// if PointList defines Object: Methods
+	//**************************************************************************
+	
+	/**
+	 * Calls the contains(Point p) method of the object defined by PointList.
+	 * Objects can be a Point, LineSegment or Rectangle object.
+	 * @param p
+	 * @return
+	 * 		True, if the object's contains(Point p) method returns true.
+	 * 		
+	 */
+	public boolean objectContains(Point p){
+		
+		// returns true if the object defined by list contains p
+
+		boolean contains = false;
+		
+		if (this.getSize() == 1){
+			// object defined by list is a point
+			contains = this.points.get(0).equals(p);
+		} else if (this.getSize() == 2){
+			// object defined by list is a line segment
+			Point2 q = new Point2(Math.round(p.posX), Math.round(p.posY));
+			Point p1 = new Point(Math.round(points.get(0).posX), Math.round(points.get(0).posY));
+			Point p2 = new Point(Math.round(points.get(1).posX), Math.round(points.get(1).posY));
+			LineSegment seg = new LineSegment(p1, p2);
+			contains = seg.contains(q);
+		} else if (this.getSize() == 4){
+			Point p1 = new Point(points.get(0).posX, points.get(0).posY);
+			Point p2 = new Point(points.get(1).posX, points.get(1).posY);
+			Point p3 = new Point(points.get(2).posX, points.get(2).posY);
+			Point p4 = new Point(points.get(3).posX, points.get(3).posY);
+			Rect r = new Rect(p1, p3, p2, p4);
+			contains = r.contains(p);
+		}
+		
+		return contains;
+		
 	}
 	
+	/**
+	 * Calls the minDist() method of the object defined by PointList.
+	 * Objects can be a Point, LineSegment or Rectangle object.
+	 * @param p
+	 * @return
+	 * 		smallest distance between two objects
+	 * 		
+	 */
 	public double objectMinDist(PointList list){
 			
 		// returns minimum distance between two objects defined by this and list
@@ -198,6 +467,14 @@ public class PointList {
 		
 	}
 
+	/**
+	 * Calls the minDistPoints() method of the object defined by PointList.
+	 * Objects can be a Point, LineSegment or Rectangle object.
+	 * @param p
+	 * @return
+	 * 		two points of objects which span smallest distance between two objects
+	 * 		
+	 */
 	public Point[] objectMinDistPoints(PointList list){
 
 		// returns points on this and list which build
@@ -329,46 +606,21 @@ public class PointList {
 			Point p23 = new Point(list.points.get(2).posX, list.points.get(2).posY);
 			Rect r1 = new Rect(p11, (float)(Math.abs((p13.posX - p11.posX))), (float)(Math.abs((p12.posY - p11.posY))));
 			Rect r2 = new Rect(p21, (float)(Math.abs((p23.posX - p21.posX))), (float)(Math.abs((p22.posY - p21.posY))));
-			//TODO
-//			if(r1.contains(r2)){
-//			}
+			
 			minDistPoints = r1.minDistPointsTo(r2);
 		}
 		
 		return minDistPoints;
 	}
 	
-	public boolean objectContains(Point p){
-		
-		// returns true if the object defined by list contains p
-
-		boolean contains = false;
-		
-		if (this.getSize() == 1){
-			// object defined by list is a point
-			contains = this.points.get(0).equals(p);
-		} else if (this.getSize() == 2){
-			// object defined by list is a line segment
-			Point q = new Point(Math.round(p.posX), Math.round(p.posY));
-			Point p1 = new Point(Math.round(points.get(0).posX), Math.round(points.get(0).posY));
-			Point p2 = new Point(Math.round(points.get(1).posX), Math.round(points.get(1).posY));
-			LineSegment seg = new LineSegment(p1, p2);
-			contains = seg.contains(q);
-		} else if (this.getSize() == 4){
-			Point p1 = new Point(points.get(0).posX, points.get(0).posY);
-			Point p2 = new Point(points.get(1).posX, points.get(1).posY);
-			Point p3 = new Point(points.get(2).posX, points.get(2).posY);
-			Point p4 = new Point(points.get(3).posX, points.get(3).posY);
-			Rect r = new Rect(p1, p3, p2, p4);
-			contains = r.contains(p);
-		}
-		
-		return contains;
-		
-	}
-	
-
-	
+	/**
+	 * Finds the biggest distance between two objects defined by PointList objects.
+	 * Objects can be a Point, LineSegment or Rectangle object.
+	 * @param p
+	 * @return
+	 * 		biggest distance between two objects
+	 * 		
+	 */
 	public double objectMaxDist(PointList list){
 		
 		// returns max distance between p in list 1 and q in list 2
@@ -389,12 +641,14 @@ public class PointList {
 		return maxDist;
 		
 	}
+	
 	/**
-	 * 
-	 * @param this
-	 * @param list
-	 * @return Point[] maxDistPoints
-	 * 		maxDistPoints[0] on this, maxDistPoints[1] on list
+	 * Objects can be a Point, LineSegment or Rectangle object.
+	 * @param p
+	 * @return
+	 * 		2 points which span biggest distance between two objects
+	 * 		(those points are vertex points of the object)
+	 * 		
 	 */
 	public Point[] objectMaxDistPoints(PointList list){
 		
@@ -410,8 +664,8 @@ public class PointList {
 				
 				if (distance > maxDist){
 					maxDist = distance;
-					maxDistPoints[0] = this.getPoints().get(i);
-					maxDistPoints[1] = list.getPoints().get(j);
+					maxDistPoints[0] = this.points.get(i);
+					maxDistPoints[1] = list.points.get(j);
 				}
 			}
 		}
@@ -419,115 +673,5 @@ public class PointList {
 		return maxDistPoints;
 		
 	}
-	
-	public double maxDist(){
-		// returns max distance between two points in set S
-		double maxDist = Double.NEGATIVE_INFINITY;
-		List<Double> distances = new ArrayList<Double>();
-		for (int i = 0; i < points.size(); i++){
-			for (int j = 0; j < points.size(); j++){
-				distances.add(Math.sqrt(points.get(i).distanceSquaredTo(points.get(j))));
-			}
-		}
-
-		for (Double dist : distances){
-			if (dist > maxDist) maxDist = dist;
-		}
-		
-		return maxDist;
-	}
-	
-	public Point search(Point p){
-		
-		for(Point point: points){
-			if(point.equals(p)){
-				
-				return point; 
-			}
-		}
-		
-		return null;
-	}
-	
-	public void removeAll(Point p){
-		
-		for (Iterator<Point> iterator = points.iterator(); iterator.hasNext();) {
-		    Point point = iterator.next();
-		    if (point.equals(p)) {
-		        // Remove the current element from the iterator and the list.
-		        iterator.remove();
-		    }
-		}
-	}
-	
-	public boolean equals(Object o){
-		
-		if(o instanceof PointList){
-			
-			PointList pointsList = (PointList)o;
-			
-			for(Point p: pointsList.getPoints()){
-				
-				if(!points.contains(p)){
-					return false;
-				}
-			}
-		}
-		
-		return true;
-	}
-	
-	
-	public int hasCode(){
-		return points.size();
-	}
-
-	public String toString(){
-		return points.toString();
-	} 
-	
-	public Point[] getExtremePoints(){
-		
-		//extremePoints contains the points with highest and lowest x and y coordinate of the PointList
-		
-		Point[] extremePoints = new Point[4];
-		if (points.size() == 0) return extremePoints;
-		//extreme points in X direction
-		Collections.sort(points, Point.COMPARE_BY_XCoord);
-		extremePoints[0] = points.get(0); // smallest X coordinate
-		extremePoints[1] = points.get(getSize()-1); // biggest X coordinate
-		
-		//extreme points in Y direction
-		Collections.sort(points, Point.COMPARE_BY_YCoord);
-		extremePoints[2] = points.get(0); // smallest Y coordinate
-		extremePoints[3] = points.get(getSize()-1); // biggest Y coordinate
-		
-		return extremePoints;
-	}
-	
-	public double delta(){
-		
-		// returns 1/2 of the largest L_infty distance between any 2 points of PointList
-		
-		double max = Double.NEGATIVE_INFINITY;
-		for (Point p : points){
-			for (Point q : points){
-				if (p.inftyDistanceTo(q) > max){
-					max = p.inftyDistanceTo(q);
-				}
-			}
-		}
-		
-		return (0.5 * max);
-	}
-	
-	public boolean isEmpty(){
-		
-		int size = getSize();
-		if (size > 0) return false;
-		else return true;
-		
-	}
-	
 	
 }
