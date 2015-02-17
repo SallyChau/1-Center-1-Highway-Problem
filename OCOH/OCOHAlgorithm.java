@@ -140,7 +140,10 @@ public class OCOHAlgorithm {
 				list_centersWithoutTurnpike.add(center(set_withTurnpike.get(i), set_withTurnpike.get(i).delta() + _eps2 + _x));
 				list_centersWithTurnpike.add(center(set_withoutTurnpike.get(i), set_withoutTurnpike.get(i).delta() + _eps1 + _x));
 				
-				if (list_centersWithoutTurnpike.get(i).objectContains(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0])){
+				if (list_centersWithoutTurnpike.get(i).objectContains
+						(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0])
+						|| list_centersWithTurnpike.get(i).objectContains
+						(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[1])){
 					minDist1.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[0]); 
 					minDist2.add(list_centersWithoutTurnpike.get(i).objectMinDistPoints(list_centersWithTurnpike.get(i))[1]);
 				} else {
@@ -195,7 +198,7 @@ public class OCOHAlgorithm {
 		
 		// find correct lines
 		
-		if (centers1.objectContains(minDistPoints[0])){
+		if (centers1.objectContains(minDistPoints[0]) || centers2.objectContains(minDistPoints[1])){
 			l1Start = minDistPoints[0];
 			l2Start = minDistPoints[1];
 		} else {

@@ -844,7 +844,7 @@ public class OCOHGUI extends JPanel {
 		g.fillRect((int)(f.posX - r), (int)(f.posY - r), (int)(2*r), (int)(2*r));
 		g.setColor(new Color(130,228,176,100));
 		g.fillRect((int)(t.posX - (r-highwayLength/velocity)), (int)(t.posY - (r-highwayLength/velocity)), (int)(2*(r-highwayLength/velocity)), (int)(2*(r-highwayLength/velocity)));
-	
+		
 	}
 		
 	/**
@@ -1342,6 +1342,7 @@ public class OCOHGUI extends JPanel {
 								if (stepCounter != algorithm.solutionIndex){
 									label_comment.setText("Step " + (stepCounter+1) + " of " + algorithm.set_withTurnpike.size());
 								} else label_comment.setText("optimal location of turnpike");
+								
 								drawBalls(stepCounter);
 								drawPartition(stepCounter);
 								drawTurnpikePos(stepCounter);

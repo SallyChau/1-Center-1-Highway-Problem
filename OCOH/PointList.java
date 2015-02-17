@@ -347,6 +347,7 @@ public class PointList {
 		if (this.getSize() == 1){
 			// object defined by list is a point
 			contains = this.points.get(0).equals(p);
+			System.out.println("1 : " + contains);
 		} else if (this.getSize() == 2){
 			// object defined by list is a line segment
 			Point2 q = new Point2(Math.round(p.posX), Math.round(p.posY));
@@ -355,10 +356,10 @@ public class PointList {
 			LineSegment seg = new LineSegment(p1, p2);
 			contains = seg.contains(q);
 		} else if (this.getSize() == 4){
-			Point p1 = new Point(points.get(0).posX, points.get(0).posY);
-			Point p2 = new Point(points.get(1).posX, points.get(1).posY);
-			Point p3 = new Point(points.get(2).posX, points.get(2).posY);
-			Point p4 = new Point(points.get(3).posX, points.get(3).posY);
+			Point p1 = new Point(Math.round(points.get(0).posX), Math.round(points.get(0).posY));
+			Point p2 = new Point(Math.round(points.get(1).posX), Math.round(points.get(1).posY));
+			Point p3 = new Point(Math.round(points.get(2).posX), Math.round(points.get(2).posY));
+			Point p4 = new Point(Math.round(points.get(3).posX), Math.round(points.get(3).posY));
 			Rect r = new Rect(p1, p3, p2, p4);
 			contains = r.contains(p);
 		}
