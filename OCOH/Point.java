@@ -23,7 +23,7 @@ public class Point {
 	double posX;
 	double posY;
 	Color color;
-	public static final int RADIUS = 4;
+	public static final int RADIUS = 5;
 
 	//**************************************************************************
 	// Constructors

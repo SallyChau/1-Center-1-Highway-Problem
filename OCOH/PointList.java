@@ -347,7 +347,6 @@ public class PointList {
 		if (this.getSize() == 1){
 			// object defined by list is a point
 			contains = this.points.get(0).equals(p);
-			System.out.println("1 : " + contains);
 		} else if (this.getSize() == 2){
 			// object defined by list is a line segment
 			Point2 q = new Point2(Math.round(p.posX), Math.round(p.posY));
