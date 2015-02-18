@@ -3,11 +3,9 @@ package OCOH;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -20,7 +18,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -30,19 +27,15 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.DefaultCaret;
-
 import anja.swinggui.JRepeatButton;
 
 /**
@@ -128,7 +121,7 @@ public class OCOHGUI extends JPanel {
 	ImageIcon icon_zoomOut = createImageIcon("resources/zoomOut.png");
 	ImageIcon icon_clear = createImageIcon("resources/trash.png");
 	
-	JTextArea textArea = new JTextArea(15, 10);
+	JTextArea textArea = new JTextArea(36, 10);
 	JFrame frame = new JFrame();
 
 	//**************************************************************************
@@ -189,7 +182,42 @@ public class OCOHGUI extends JPanel {
 	//**************************************************************************
 	// Create GUI/ Panels
 	//**************************************************************************
+	
+	/**
+	 * Creates the pop-up window for displaying the current partition radius.
+	 */
+	public void createRadiusWindow() {
 		
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                
+            	frame.setAutoRequestFocus(false);
+                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                frame.setLocation(1190,45);
+
+            	JPanel panel_newFrame = new JPanel();
+                panel_newFrame.setLayout(new BoxLayout(panel_newFrame, BoxLayout.Y_AXIS));
+                panel_newFrame.setOpaque(true);
+                
+                textArea.setWrapStyleWord(true);
+                textArea.setEditable(false);
+        		textArea.setText("Computing turnpike location ... \n\n Partitionradius:  \n\n");
+                
+                JScrollPane scroller = new JScrollPane(textArea);
+                scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                
+                DefaultCaret caret = (DefaultCaret) textArea.getCaret();
+                caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+                panel_newFrame.add(scroller);
+                frame.getContentPane().add(BorderLayout.CENTER, panel_newFrame);
+                frame.pack();
+                frame.setResizable(false);
+            }
+        });
+    }
+	
 	/**
 	 * Creates the west panel which is the main toolbar for the GUI.
 	 */
@@ -717,14 +745,14 @@ public class OCOHGUI extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
-	        		textArea.setText("Partitionradius:  \n");
+	        		textArea.setText("Computing\nturnpike location ... \n\nPartitionradius:  \n\n");
 				
 					stepCounter = 0;
+					
 					_animationActive = !_animationActive;
+					
 					AnimationThread animation = new AnimationThread();
 					animation.start();
-				
-				
 				
 			}
 			
@@ -1302,7 +1330,7 @@ public class OCOHGUI extends JPanel {
 			while(_animationActive && stepCounter < algorithm.set_withTurnpike.size()){
 				
 				int i = stepCounter + 1;
-				label_comment.setText("Step " + i + " of " + algorithm.set_withTurnpike.size());
+				label_comment.setText("Computing optimal location ... Step " + i + " of " + algorithm.set_withTurnpike.size());
 				
 				try {
 					
@@ -1333,6 +1361,10 @@ public class OCOHGUI extends JPanel {
 	// Paint Method
 	//**************************************************************************
 	
+	/**
+	 * Enters according partition radius into pop-up window while animation is running.
+	 * @param i
+	 */
 	public void enterRadius(int i){
 	
 		textArea.setFont(font_default);
@@ -1360,11 +1392,14 @@ public class OCOHGUI extends JPanel {
 				if (algorithm.set_withTurnpike != null){
 					if (algorithm.set_withTurnpike.size() > 0) {
 						if (_animationActive && stepCounter > -1){
-							if (prevStepCounter != stepCounter) enterRadius(stepCounter);
-							if (stepCounter == (algorithm.set_withoutTurnpike.size()-1)){
-								textArea.append("=========================== \n smallest radius found at step \n" 
-									+ (algorithm.solutionIndex + 1) + ": \n Radius = " 
-									+ algorithm.partitionRadius.get(algorithm.solutionIndex) + "\n");
+							if (prevStepCounter != stepCounter) {
+								enterRadius(stepCounter);
+								if (stepCounter == (algorithm.set_withoutTurnpike.size()-1)){
+									textArea.append("============ \n smallest radius \n found at step " 
+										+ (algorithm.solutionIndex + 1) + ": \n Radius = " 
+										+ algorithm.partitionRadius.get(algorithm.solutionIndex) + "\n\n"
+										+ "-> Locate Turnpike\nand Facility as seen!");
+								}
 							}
 							drawBalls(stepCounter);
 							drawPartition(stepCounter);
@@ -1381,8 +1416,8 @@ public class OCOHGUI extends JPanel {
 							} 
 							if (checkBox_showAlgoSteps.isSelected()){
 								if (stepCounter != algorithm.solutionIndex){
-									label_comment.setText("Step " + (stepCounter+1) + " of " + algorithm.set_withTurnpike.size());
-								} else label_comment.setText("optimal location of turnpike");
+									label_comment.setText("Computing optimal location ... Step " + (stepCounter+1) + " of " + algorithm.set_withTurnpike.size());
+								} else label_comment.setText("Optimal location of turnpike found.");
 								
 								drawBalls(stepCounter);
 								drawPartition(stepCounter);
@@ -1413,37 +1448,5 @@ public class OCOHGUI extends JPanel {
 		return new ImageIcon(look);
 		
 	}
-	
-	public void createRadiusWindow() {
-		
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                
-            	frame.setAutoRequestFocus(false);
-                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                frame.setLocation(1190,45);
-
-            	JPanel panel_newFrame = new JPanel();
-                panel_newFrame.setLayout(new BoxLayout(panel_newFrame, BoxLayout.Y_AXIS));
-                panel_newFrame.setOpaque(true);
-                
-                textArea.setWrapStyleWord(true);
-                textArea.setEditable(false);
-        		textArea.setText("Partitionradius:  \n");
-                
-                JScrollPane scroller = new JScrollPane(textArea);
-                scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-                scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-                
-                DefaultCaret caret = (DefaultCaret) textArea.getCaret();
-                caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-                panel_newFrame.add(scroller);
-                frame.getContentPane().add(BorderLayout.CENTER, panel_newFrame);
-                frame.pack();
-                frame.setResizable(false);
-            }
-        });
-    }
 	
 }
