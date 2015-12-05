@@ -1,7 +1,7 @@
 # BA-INF 051 Projectgroup Computational Geometry
 _University of Bonn, 1st term 2015_
 
-_Course Convener: Priv.-Doz. Dr. Elmar Langetepe_
+_Course Convener: Dr. Elmar Langetepe (http://www.i1.informatik.uni-bonn.de/doku.php?id=staff:elmarlangetepe)_
 
 A project submission by Sally Chau
 
