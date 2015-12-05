@@ -31,13 +31,16 @@ Manipulation of the length and velocity of the highway,
 Starting the animation by pressing the arrow button,
 Showing the step by step algorithm by clicking the previous and next buttons.
 The Checkboxes have the following functionalities, when selected:
-Customers: Displays the customer points on the screen as black circle points.
-Solution: Displays the solution of the current set of points: 
+
+- Customers: Displays the customer points on the screen as black circle points.
+- Solution: Displays the solution of the current set of points: 
+- 
 Showing the optimal solution of the highway as a line segment as well as the start point of the highway and facility point. The facility point is displayed as a green circle point.
-Algorithm steps: Displays the current step of the algorithm: 
+
+- Algorithm steps: Displays the current step of the algorithm: 
 It shows the current location of the highway of the currently selected partition of the pointset. 
 Here, a blue coloured point indicates that this point uses the turnpike to reach the facility point, while the red coloured points reach the facility point without passing the turnpike.
-Centers: Displays the possible positions of the midpoints of squares covering the area of points which do/do not use the turnpike. 
+- Centers: Displays the possible positions of the midpoints of squares covering the area of points which do/do not use the turnpike. 
 This functionality is mainly used for understanding the background of each algorithm step.
-Bounding boxes: Displays the tightest axis-aligned bounding box for the partitionsets. 
+- Bounding boxes: Displays the tightest axis-aligned bounding box for the partitionsets. 
 This functionality is mainly used for understanding the background of each algorithm step.
