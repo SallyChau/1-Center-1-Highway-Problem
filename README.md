@@ -34,7 +34,7 @@ The Checkboxes have the following functionalities, when selected:
 
 - Customers: Displays the customer points on the screen as black circle points.
 - Solution: Displays the solution of the current set of points: 
-- 
+
 Showing the optimal solution of the highway as a line segment as well as the start point of the highway and facility point. The facility point is displayed as a green circle point.
 
 - Algorithm steps: Displays the current step of the algorithm: 
