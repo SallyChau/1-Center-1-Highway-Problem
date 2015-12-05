@@ -5,7 +5,7 @@ _Course Convener: Priv.-Doz. Dr. Elmar Langetepe_
 
 A project submission by Sally Chau
 
-In the context of the project group "Computational Geometry", I implemented the algorithm from J. M. Dıaz-Banez, M. Korman, P. Perez-Lantero, I. Ventura from the paper "The 1-Center and 1-Highway problem" (http://personal.us.es/dbanez/papers/carreteras-minmax.pdf). Furthermore, I designed and implemented a GUI to visualize the step-by-step process of the algorithm. The whole project is implemented in Java.
+In the context of the project group "Computational Geometry" during the Bachelor of Science program in Computer Science at the University of Bonn, I implemented the algorithm from J. M. Dıaz-Banez, M. Korman, P. Perez-Lantero, I. Ventura from the paper "The 1-Center and 1-Highway problem" (http://personal.us.es/dbanez/papers/carreteras-minmax.pdf). Furthermore, I designed and implemented a GUI to visualize the step-by-step process of the algorithm. The whole project is implemented in Java.
 
 _The 1-Center and 1-Highway Problem_
 
