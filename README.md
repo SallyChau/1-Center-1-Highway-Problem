@@ -1,11 +1,11 @@
 # BA-INF 051 Projectgroup Computational Geometry
 University of Bonn, 1st term 2015
 
-Course Convener Priv.-Doz. Dr. Elmar Langetepe
+Course Convener: Priv.-Doz. Dr. Elmar Langetepe
 
 In the context of the project group "Computational Geometry", I implemented the algorithm from J. M. Dıaz-Banez, M. Korman, P. Perez-Lantero, I. Ventura from the paper "The 1-Center and 1-Highway problem" (http://personal.us.es/dbanez/papers/carreteras-minmax.pdf). Furthermore, I designed and implemented a GUI to visualize the step-by-step process of the algorithm. The whole project is implemented in Java.
 
-The 1-Center and 1-Highway Problem
+*The 1-Center and 1-Highway Problem*
 
 We are given a set of points S. We aim to locate a highway h and a facility point f such that the maximum travel time from a point p in S is minimized. The highway is represented by a line segment in the plane with two endpoints t and t'. It has length l and a velocity v > 1. This means if a point p takes the highway on his way to the facility point f, his speed is going to be increased and thus his traveltime lowered. There are two types of highways which we call turnpike or freeway. The difference is that you can enter and leave a freeway from any point on the line segment allowing you to travel smaller distances than l via the highway. However, a turnpike is only accessible via the predefined endpoints of the highway leaving us to travel the complete highway. Including to keep the length of the highway fixed or variable, this setting leaves us with four different versions of the 1-Center and 1-Highway Problem: 
 
