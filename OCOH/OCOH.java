@@ -14,7 +14,7 @@ public class OCOH{
 
 	private static final String TITLE = "1-Center 1-Highway Problem";
 	private static final int DEFAULT_WIDTH = 1000;
-	private static final int DEFAULT_HEIGHT = 650;
+	private static final int DEFAULT_HEIGHT = 700;
 
 	public OCOH(){
 		
