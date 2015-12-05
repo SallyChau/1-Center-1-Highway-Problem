@@ -1,7 +1,7 @@
 # BA-INF 051 Projectgroup Computational Geometry
-University of Bonn, 1st term 2015
+_University of Bonn, 1st term 2015_
 
-Course Convener: Priv.-Doz. Dr. Elmar Langetepe
+_Course Convener: Priv.-Doz. Dr. Elmar Langetepe_
 
 In the context of the project group "Computational Geometry", I implemented the algorithm from J. M. Dıaz-Banez, M. Korman, P. Perez-Lantero, I. Ventura from the paper "The 1-Center and 1-Highway problem" (http://personal.us.es/dbanez/papers/carreteras-minmax.pdf). Furthermore, I designed and implemented a GUI to visualize the step-by-step process of the algorithm. The whole project is implemented in Java.
 
@@ -19,11 +19,11 @@ In the applet at hand we concentrated on implementing the algorithm for solving 
 The main idea of the algorithm solving the 1-Center and 1-fixed-length-Turnpike problem is to calculate the turnpike position for different bipartitions of the pointset S. By finding the one position of the highway giving us the shortest maximum distance, we found the optimal turnpike location for the whole pointset S.
 How to use the applet
 
-Mouse functionalities
+_Mouse functionalities_
 
 The left mouse click can be used to add new points and the right mouse to delete points.
 
-Toolbar
+_Toolbar_
 
 The panel on the left hand side is the main control panel. We can control main settings here:
 Choosing the type of the highway we want to locate (this function, however, is not enabled for the current version of the applet),
