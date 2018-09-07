@@ -1,4 +1,4 @@
-# BA-INF 051 Projectgroup Computational Geometry
+# The 1-Center and 1-Highway Problem
 _University of Bonn, 1st term 2015_
 
 _Course Convener: Dr. Elmar Langetepe (http://www.i1.informatik.uni-bonn.de/doku.php?id=staff:elmarlangetepe)_
